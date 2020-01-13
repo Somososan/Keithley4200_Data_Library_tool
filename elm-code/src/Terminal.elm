@@ -1,4 +1,4 @@
-module Terminal exposing (Terminal, decode, encode, toString)
+module Terminal exposing (Terminal, decode, encode, toString, toString_concise)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -9,6 +9,7 @@ type Terminal
     | Drain
     | Source
     | Bulk
+    | Time
 
 
 encode : Terminal -> Encode.Value
@@ -25,6 +26,9 @@ encode terminal =
 
         Bulk ->
             Encode.string "Bulk"
+
+        Time ->
+            Encode.string "Time"
 
 
 decode : Decode.Decoder Terminal
@@ -45,6 +49,9 @@ decode =
                     "Bulk" ->
                         Decode.succeed Bulk
 
+                    "Time" ->
+                        Decode.succeed Time
+
                     _ ->
                         Decode.fail "Error parsing Terminal"
             )
@@ -64,3 +71,25 @@ toString terminal =
 
         Bulk ->
             "Bulk"
+
+        Time ->
+            "Time"
+
+
+toString_concise : Terminal -> String
+toString_concise terminal =
+    case terminal of
+        Gate ->
+            "g"
+
+        Drain ->
+            "d"
+
+        Source ->
+            "s"
+
+        Bulk ->
+            "b"
+
+        Time ->
+            "T"

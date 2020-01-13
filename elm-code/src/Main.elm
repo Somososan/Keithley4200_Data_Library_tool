@@ -150,6 +150,23 @@ update msg model =
     case msg of
         SelectEntry id state ->
             let
+                make_data_list testdata =
+                    let
+                        base_data n =
+                            { terminal = testdata.terminal, unit = testdata.unit, count = n }
+                    in
+                    List.range 1 testdata.count
+                        |> List.map base_data
+
+                all_data =
+                    model
+                        |> .measurements
+                        |> List.filter (\m -> m.id == id)
+                        |> List.head
+                        |> Maybe.map (\m -> m.test_data)
+                        |> Maybe.withDefault []
+                        |> List.concatMap make_data_list
+
                 updateEntry : Maybe Entry -> Maybe Entry
                 updateEntry maybeEntry =
                     case maybeEntry of
@@ -1140,7 +1157,7 @@ testdataselectionview model =
                             testdata_without_time =
                                 List.filter
                                     (\t ->
-                                        case TestDataCompact.toString_concise t of
+                                        case Terminal.toString_concise t.terminal of
                                             "T" ->
                                                 False
 
@@ -1149,13 +1166,45 @@ testdataselectionview model =
                                     )
                                     measurement.test_data
 
-                            inner t =
-                                th [ class "text_table" ] [ text t ]
+                            testdata_time =
+                                List.filter
+                                    (\t ->
+                                        case Terminal.toString_concise t.terminal of
+                                            "T" ->
+                                                True
+
+                                            _ ->
+                                                False
+                                    )
+                                    measurement.test_data
+
+                            colgroup_amount =
+                                case List.head testdata_without_time of
+                                    Just data ->
+                                        data.count
+
+                                    Nothing ->
+                                        0
+
+                            colgroup_range =
+                                List.range 1 colgroup_amount
+
+                            cols _ =
+                                let
+                                    inner testdata =
+                                        th [ class "text_table", colspan (List.length measurement.test_data) ] [ text (TestDataCompact.toString_concise testdata) ]
+                                in
+                                List.map inner testdata_without_time
+
+                            colgroup i =
+                                th [ class "text_table", colspan (List.length measurement.test_data) ] [ input [ type_ "check" ] [], text ("Series " ++ String.fromInt i) ]
                         in
-                        tr [] [ th [ class "text_table" ] [ text "" ] ]
+                        [ tr [] (th [ class "text_table" ] [ text "" ] :: List.map colgroup colgroup_range)
+                        , tr [] ([ th [ class "text_table" ] [ text "T" ] ] ++ List.concatMap cols colgroup_range)
+                        ]
 
                     else
-                        tr [] [ th [ class "text_table" ] [ text "" ] ]
+                        [ tr [] [ th [ class "text_table" ] [ text "" ] ] ]
             in
             div [ class "testdata_container" ]
                 [ div [ class "testdata_top" ]

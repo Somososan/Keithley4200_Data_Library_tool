@@ -241,15 +241,15 @@ impl Measurement {
         } 
 
         hash.drain().filter_map(|(header,data)| {match header.as_str() {
-            "DrainV"    => Some(TestData::DrainVoltage(data) ),
-            "DrainI"    => Some(TestData::DrainCurrent(data) ),
-            "GateV"     => Some(TestData::GateVoltage(data) ),
-            "GateI"     => Some(TestData::GateCurrent(data) ),
-            "SourceV"   => Some(TestData::SourceVoltage(data) ),
-            "SourceI"   => Some(TestData::SourceCurrent(data) ),
-            "BulkV"     => Some(TestData::BulkVoltage(data) ),
-            "BulkI"     => Some(TestData::BulkCurrent(data) ),
-            "Time"      =>  Some(TestData::Time(data.first().unwrap().clone()) ),
+            "DrainV"    => Some(TestData {terminal: Terminal::Drain, unit: Unit::Voltage, data}),
+            "DrainI"    => Some(TestData {terminal: Terminal::Drain, unit: Unit::Current, data}),
+            "GateV"     => Some(TestData {terminal: Terminal::Gate, unit: Unit::Voltage, data}),
+            "GateI"     => Some(TestData {terminal: Terminal::Gate, unit: Unit::Current, data}),
+            "SourceV"   => Some(TestData {terminal: Terminal::Source, unit: Unit::Voltage, data}),
+            "SourceI"   => Some(TestData {terminal: Terminal::Source, unit: Unit::Current, data}),
+            "BulkV"     => Some(TestData {terminal: Terminal::Bulk, unit: Unit::Voltage, data}),
+            "BulkI"     => Some(TestData {terminal: Terminal::Bulk, unit: Unit::Current, data}),
+            "Time"      => Some(TestData {terminal: Terminal::Time, unit: Unit::Seconds, data}),
             _           => None
         }}).collect()
     }
@@ -380,7 +380,6 @@ impl TerminalParameter {
             "Bulk" => Some(Terminal::Bulk),
             _ => None
         };
-        println!("{:?} , {:?}", string,result);
         result
     }
 
@@ -585,7 +584,8 @@ pub enum Terminal{
     Gate,
     Drain,
     Source,
-    Bulk
+    Bulk,
+    Time
 }
 
 
@@ -642,48 +642,31 @@ enum CRange {
     LimitedAuto(String),
     Auto
 }
-
+#[derive(Debug,Serialize,Deserialize,Clone,Copy)]
+pub enum Unit {
+    Voltage,
+    Current,
+    Seconds
+}
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
-pub enum TestData {
-    DrainVoltage( Vec<Vec<f64> >),
-    GateVoltage( Vec<Vec<f64> >),
-    BulkVoltage( Vec<Vec<f64> >),
-    SourceVoltage( Vec<Vec<f64> >),
-    DrainCurrent( Vec<Vec<f64> >),
-    GateCurrent( Vec<Vec<f64> >),
-    BulkCurrent( Vec<Vec<f64> >),
-    SourceCurrent( Vec<Vec<f64> >),
-    Time( Vec<f64> ),
+pub struct TestData {
+    terminal : Terminal,
+    unit : Unit,
+    data : Vec<Vec<f64> >
 }
 
 impl TestData{
     fn to_compact(&self) -> TestDataCompact{
-        match self{
-            TestData::DrainVoltage(vec)   => TestDataCompact::DrainVoltage(vec.len()),
-            TestData::GateVoltage(vec)    => TestDataCompact::GateVoltage(vec.len()),
-            TestData::BulkVoltage(vec)    => TestDataCompact::BulkVoltage(vec.len()),
-            TestData::SourceVoltage(vec)  => TestDataCompact::SourceVoltage(vec.len()),
-            TestData::DrainCurrent(vec)   => TestDataCompact::DrainCurrent(vec.len()),
-            TestData::GateCurrent(vec)    => TestDataCompact::GateCurrent(vec.len()),
-            TestData::BulkCurrent(vec)    => TestDataCompact::BulkCurrent(vec.len()),
-            TestData::SourceCurrent(vec)  => TestDataCompact::SourceCurrent(vec.len()),
-            TestData::Time(vec)           => TestDataCompact::Time(vec.len()),
-        }
+        TestDataCompact {terminal: self.terminal, unit: self.unit, count : self.data.len()}
     }
 }
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
-pub enum TestDataCompact {
-    DrainVoltage(usize),
-    GateVoltage(usize),
-    BulkVoltage(usize),
-    SourceVoltage(usize),
-    DrainCurrent(usize),
-    GateCurrent(usize),
-    BulkCurrent(usize),
-    SourceCurrent(usize),
-    Time(usize),
+pub struct TestDataCompact {
+    terminal : Terminal,
+    unit : Unit,
+    count : usize
 }
 
 //calamine helper struct
