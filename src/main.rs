@@ -827,6 +827,9 @@ fn main() {
             use FromElm::*;
             let compact_msmt :Vec<MeasurementCompact>= storage.measurements.clone().into_iter().map(|m| m.to_compact()).collect();
             let to_elm = webview.user_data_mut();
+            if  serde_json::from_str::<FromElm>(arg).is_err()  {
+                println!("{:#?}", arg);
+            } 
             match serde_json::from_str(arg).unwrap() {
                 Init => *to_elm = {
                     println!("Init {}",to_elm.message_nr);
@@ -868,6 +871,7 @@ fn main() {
 
     println!("final state: {:?}", res);
 }
+
 
 fn render(webview: &mut WebView<ToElm>) -> WVResult {
     let render_tasks = {
@@ -1155,9 +1159,9 @@ impl FilterOptions {
 
 #[derive(Debug,Deserialize)]
 pub struct ProcessQuery {
-    what : ProcessingType,
+    what : Vec<ProcessingType>,
     combined : bool,
-    from : ProcessData
+    from : Vec<ProcessData>
 }
 impl ProcessQuery{
     fn process(&self){}

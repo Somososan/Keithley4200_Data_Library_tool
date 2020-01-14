@@ -52,38 +52,6 @@ main =
         }
 
 
-type ToRust
-    = Init
-    | Log String
-    | Filter FilterQuery
-    | Process ProcessQuery
-
-
-encodeToRust : ToRust -> Encode.Value
-encodeToRust trst =
-    case trst of
-        Init ->
-            Encode.object [ ( "torust", Encode.string "Init" ) ]
-
-        Log string ->
-            Encode.object
-                [ ( "torust", Encode.string "Log" )
-                , ( "content", Encode.string string )
-                ]
-
-        Filter query ->
-            Encode.object
-                [ ( "torust", Encode.string "Filter" )
-                , ( "content", FilterQuery.encode query )
-                ]
-
-        Process query ->
-            Encode.object
-                [ ( "torust", Encode.string "Process" )
-                , ( "content", ProcessQuery.encode query )
-                ]
-
-
 
 -- MODEL
 
@@ -122,13 +90,14 @@ type Msg
     | ChangeNormalizeData Bool
     | SelectProcessType ProcessingType Bool
     | ChangeAllEntries Bool
-    | SendToRust ToRust
+    | SendToRust String
     | ChangeFilter FilterQuery
     | ChangeWafer String
     | ChangeTestType String
     | UpdateModel FromRust
     | ToSelectPage
     | ToProcessPage
+    | ProcessData
 
 
 init : () -> ( Model, Cmd Msg )
@@ -188,7 +157,7 @@ update msg model =
                     else
                         id ++ "unchecked"
             in
-            ( { model | selected_entries = entries }, toRust (encodeToRust (Log string)) )
+            ( { model | selected_entries = entries }, toRust (ToRust.log string) )
 
         ChangeCombineData state ->
             let
@@ -199,7 +168,7 @@ update msg model =
                     else
                         "Combine data unchecked"
             in
-            ( { model | combine_data = state }, toRust (encodeToRust (Log string)) )
+            ( { model | combine_data = state }, toRust (ToRust.log string) )
 
         ChangeNormalizeData state ->
             let
@@ -209,8 +178,15 @@ update msg model =
 
                     else
                         "Normalize data unchecked"
+
+                old_raw =
+                    if List.member ProcessingType.raw model.process_options_selected then
+                        [ ProcessingType.raw ]
+
+                    else
+                        []
             in
-            ( { model | normalize_data = state }, toRust (encodeToRust (Log string)) )
+            ( { model | normalize_data = state, process_options_selected = old_raw }, toRust (ToRust.log string) )
 
         SelectProcessType kind state ->
             let
@@ -231,7 +207,7 @@ update msg model =
                     else
                         ProcessingType.toString_concise kind ++ " unchecked"
             in
-            ( { model | process_options_selected = new_list }, toRust (encodeToRust (Log string)) )
+            ( { model | process_options_selected = new_list }, toRust (ToRust.log string) )
 
         ChangeAllEntries state ->
             let
@@ -251,13 +227,17 @@ update msg model =
                     else
                         "Cleared all entries"
             in
-            ( { model | selected_entries = entries }, toRust (encodeToRust (Log string)) )
+            ( { model | selected_entries = entries }, toRust (ToRust.log string) )
 
-        SendToRust cmd ->
-            ( model, toRust (encodeToRust cmd) )
+        SendToRust log ->
+            if log == "Init" then
+                ( model, toRust ToRust.init )
+
+            else
+                ( model, toRust (ToRust.log log) )
 
         ChangeFilter filter ->
-            ( { model | filters_used = filter }, toRust (encodeToRust (Filter filter)) )
+            ( { model | filters_used = filter }, toRust (ToRust.filter filter) )
 
         ChangeWafer wfr ->
             let
@@ -267,7 +247,7 @@ update msg model =
                 new_filter =
                     { filter | wafer = wfr }
             in
-            ( { model | filters_used = new_filter }, toRust (encodeToRust (Filter new_filter)) )
+            ( { model | filters_used = new_filter }, toRust (ToRust.filter new_filter) )
 
         ChangeTestType ttype ->
             let
@@ -277,7 +257,7 @@ update msg model =
                 new_filter =
                     { filter | test_type = ttype }
             in
-            ( { model | filters_used = new_filter }, toRust (encodeToRust (Filter new_filter)) )
+            ( { model | filters_used = new_filter }, toRust (ToRust.filter new_filter) )
 
         UpdateModel fromrust ->
             let
@@ -323,19 +303,33 @@ update msg model =
             in
             if model.message_nr /= fromrust.message_nr then
                 if fromrust.task_done == RustTask.init then
-                    ( { model | combine_data = False, normalize_data = False, process_options_selected = [], page = SelectPage, message_nr = fromrust.message_nr, measurements = fromrust.measurements, selected_entries = selected_entries_init, filters_used = filters_used_init, filter_options = fromrust.filter_options }, toRust (encodeToRust (Log "Init received")) )
+                    ( { model | combine_data = False, normalize_data = False, process_options_selected = [], page = SelectPage, message_nr = fromrust.message_nr, measurements = fromrust.measurements, selected_entries = selected_entries_init, filters_used = filters_used_init, filter_options = fromrust.filter_options }, toRust (ToRust.log "Init received") )
 
                 else
-                    ( { model | message_nr = fromrust.message_nr, measurements = fromrust.measurements, selected_entries = selected_entries_adjusted, filter_options = fromrust.filter_options }, toRust (encodeToRust (Log "Done")) )
+                    ( { model | message_nr = fromrust.message_nr, measurements = fromrust.measurements, selected_entries = selected_entries_adjusted, filter_options = fromrust.filter_options }, toRust (ToRust.log "Done") )
 
             else
                 ( model, Cmd.none )
 
         ToSelectPage ->
-            ( { model | page = SelectPage }, toRust (encodeToRust (Log "Select Page Opened")) )
+            ( { model | page = SelectPage }, toRust (ToRust.log "Select Page Opened") )
 
         ToProcessPage ->
-            ( { model | page = ProcessPage }, toRust (encodeToRust (Log "Process Page Opened")) )
+            ( { model | page = ProcessPage }, toRust (ToRust.log "Process Page Opened") )
+
+        ProcessData ->
+            let
+                processdata =
+                    model
+                        |> .selected_entries
+                        |> Dict.filter (\k e -> e.selected)
+                        |> Dict.toList
+                        |> List.map (\( k, e ) -> { id = k, data = e.data })
+
+                query =
+                    { what = model.process_options_selected, combined = model.combine_data, from = processdata }
+            in
+            ( model, toRust (ToRust.process query) )
 
 
 
@@ -735,7 +729,7 @@ processoptionsview model =
             [ combine ]
                 ++ [ normalize ]
                 ++ List.concatMap opt possible_process_options
-                ++ [ button [] [ text "Process" ] ]
+                ++ [ button [ onClick ProcessData ] [ text "Process" ] ]
     in
     [ div [ id "param_used" ]
         [ h1 [] [ text "Parameters used:" ]
@@ -1152,59 +1146,61 @@ testdataselectionview model =
                     ]
 
                 data_selection =
+                    let
+                        testdata_without_time =
+                            List.filter
+                                (\t ->
+                                    case Terminal.toString_concise t.terminal of
+                                        "T" ->
+                                            False
+
+                                        _ ->
+                                            True
+                                )
+                                measurement.test_data
+
+                        testdata_time =
+                            List.filter
+                                (\t ->
+                                    case Terminal.toString_concise t.terminal of
+                                        "T" ->
+                                            True
+
+                                        _ ->
+                                            False
+                                )
+                                measurement.test_data
+
+                        colgroup_amount =
+                            case List.head testdata_without_time of
+                                Just data ->
+                                    data.count
+
+                                Nothing ->
+                                    0
+
+                        colgroup_range =
+                            List.range 1 colgroup_amount
+
+                        cols _ =
+                            let
+                                inner testdata =
+                                    th [ class "text_table" ] [ text (TestDataCompact.toString_concise testdata) ]
+                            in
+                            List.map inner testdata_without_time
+
+                        colgroup i =
+                            th [ class "text_table", colspan (List.length testdata_without_time) ] [ input [ type_ "checkbox" ] [], text ("Series " ++ String.fromInt i) ]
+                    in
                     if measurement.test_parameter.test_type == TestType.sampling then
-                        let
-                            testdata_without_time =
-                                List.filter
-                                    (\t ->
-                                        case Terminal.toString_concise t.terminal of
-                                            "T" ->
-                                                False
-
-                                            _ ->
-                                                True
-                                    )
-                                    measurement.test_data
-
-                            testdata_time =
-                                List.filter
-                                    (\t ->
-                                        case Terminal.toString_concise t.terminal of
-                                            "T" ->
-                                                True
-
-                                            _ ->
-                                                False
-                                    )
-                                    measurement.test_data
-
-                            colgroup_amount =
-                                case List.head testdata_without_time of
-                                    Just data ->
-                                        data.count
-
-                                    Nothing ->
-                                        0
-
-                            colgroup_range =
-                                List.range 1 colgroup_amount
-
-                            cols _ =
-                                let
-                                    inner testdata =
-                                        th [ class "text_table", colspan (List.length measurement.test_data) ] [ text (TestDataCompact.toString_concise testdata) ]
-                                in
-                                List.map inner testdata_without_time
-
-                            colgroup i =
-                                th [ class "text_table", colspan (List.length measurement.test_data) ] [ input [ type_ "check" ] [], text ("Series " ++ String.fromInt i) ]
-                        in
                         [ tr [] (th [ class "text_table" ] [ text "" ] :: List.map colgroup colgroup_range)
                         , tr [] ([ th [ class "text_table" ] [ text "T" ] ] ++ List.concatMap cols colgroup_range)
                         ]
 
                     else
-                        [ tr [] [ th [ class "text_table" ] [ text "" ] ] ]
+                        [ tr [] (List.map colgroup colgroup_range)
+                        , tr [] (List.concatMap cols colgroup_range)
+                        ]
             in
             div [ class "testdata_container" ]
                 [ div [ class "testdata_top" ]
@@ -1217,7 +1213,7 @@ testdataselectionview model =
                         , text (TimeStamp.toString measurement.test_time_stamp)
                         ]
                     , table [ class "testdata_device" ]
-                        (th [ colspan 2 ] [ text "Device" ]
+                        (tr [] [ th [ colspan 2 ] [ text "Device" ] ]
                             :: wafer
                             ++ die
                             ++ temp
@@ -1226,7 +1222,7 @@ testdataselectionview model =
                         )
                     , table
                         [ class "testdata_measurement" ]
-                        (th [ colspan 2 ] [ text "Test Parameters" ]
+                        (tr [] [ th [ colspan 2 ] [ text "Test Parameters" ] ]
                             :: testtype
                             ++ speed
                             ++ ad_aperture
@@ -1237,11 +1233,10 @@ testdataselectionview model =
                         )
                     ]
                 , table [ class "testdata_terminals" ]
-                    (th []
-                        [ td [ colspan (1 + List.length measurement.terminals), class "text_table" ] [ text "Terminals" ]
-                        ]
+                    (tr [] [ th [ colspan (1 + List.length measurement.terminals), class "text_table" ] [ text "Terminals" ] ]
                         :: instruments_list (List.length measurement.terminals)
                     )
+                , table [ class "testdata_data" ] data_selection
                 ]
     in
     List.map singleview selected_measurements
@@ -1281,7 +1276,7 @@ view model =
                     [ text "C Karaliolios's Data Library tool for the Keithley 4200" ]
                 , div [ id "page_selection" ]
                     [ button
-                        [ onClick (SendToRust Init) ]
+                        [ onClick (SendToRust "Init") ]
                         [ text "Reset" ]
                     , button
                         [ onClick ToSelectPage ]
@@ -1311,7 +1306,7 @@ decodeValue x =
             UpdateModel fromrust
 
         Err err ->
-            SendToRust (Log (Decode.errorToString err))
+            SendToRust (Decode.errorToString err)
 
 
 subscriptions : Model -> Sub Msg

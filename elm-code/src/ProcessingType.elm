@@ -46,22 +46,22 @@ encode : ProcessingType -> Encode.Value
 encode kind =
     case kind of
         Raw ->
-            Encode.string "Raw"
+            Encode.object [ ( "process_type", Encode.string "Raw" ) ]
 
         Id_versus_time ->
-            Encode.string "Id_versus_time"
+            Encode.object [ ( "process_type", Encode.string "Id_versus_time" ) ]
 
         Id_normalized_versus_time ->
-            Encode.string "Id_normalized_versus_time"
+            Encode.object [ ( "process_type", Encode.string "Id_normalized_versus_time" ) ]
 
         Id_bins ->
-            Encode.string "Id_bins"
+            Encode.object [ ( "process_type", Encode.string "Id_bins" ) ]
 
         Id_bins_normalized ->
-            Encode.string "Id_bins_normalized"
+            Encode.object [ ( "process_type", Encode.string "Id_bins_normalized" ) ]
 
         Id_for_swept_VDS_and_VGS ->
-            Encode.string "Id_for_swept_VDS_and_VGS"
+            Encode.object [ ( "process_type", Encode.string "Id_for_swept_VDS_and_VGS" ) ]
 
 
 toString : ProcessingType -> String

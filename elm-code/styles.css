@@ -266,7 +266,12 @@ padding-left: 1ex;
 	margin-right: auto;
 }
 
-.testdata_terminals th td{
+.testdata_terminals th{
+	text-align: center;
+
+}
+
+.testdata_data th{
 	text-align: center;
 
 }

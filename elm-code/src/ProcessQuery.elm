@@ -6,7 +6,7 @@ import ProcessingType exposing (ProcessingType)
 
 
 type alias ProcessQuery =
-    { what : ProcessingType
+    { what : List ProcessingType
     , combined : Bool
     , from : List ProcessData
     }
@@ -15,7 +15,7 @@ type alias ProcessQuery =
 encode : ProcessQuery -> Encode.Value
 encode query =
     Encode.object
-        [ ( "what", ProcessingType.encode query.what )
+        [ ( "what", Encode.list ProcessingType.encode query.what )
         , ( "combined", Encode.bool query.combined )
         , ( "from", Encode.list ProcessData.encode query.from )
         ]
