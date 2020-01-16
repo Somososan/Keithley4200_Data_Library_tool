@@ -28,7 +28,7 @@ impl Database{
         let counter = self.id_day_counter.entry(string.clone()).or_insert(0);
         *counter += 1;
 
-        format!("{}@run{}", string.as_str(), counter)
+        format!("{}:{}", string.as_str(), counter)
     }
 }
 
@@ -266,7 +266,7 @@ struct Device {
 }
 
 
-#[derive(Debug,Serialize,Deserialize,Copy,Clone, Eq, PartialEq)]
+#[derive(Debug,Serialize,Deserialize,Copy,Clone, Eq, PartialEq,PartialOrd)]
 pub enum Process {
     MINOXG,
     GF22
@@ -372,7 +372,6 @@ struct TerminalParameter {
 
 impl TerminalParameter {
     fn extract_terminal_type (column: &MyRange) -> Option<Terminal>{
-        let string = column.it.get((0,0))?.get_string()?;
         let result = match column.it.get((0,0))?.get_string()?{
             "Gate" => Some(Terminal::Gate),
             "Drain" => Some(Terminal::Drain),
@@ -579,7 +578,7 @@ impl TerminalParameter {
 }
 
 
-#[derive(AsRefStr,Debug,Serialize,Deserialize,Copy,Clone)]
+#[derive(AsRefStr,Debug,Serialize,Deserialize,Copy,Clone,PartialEq)]
 pub enum Terminal{
     Gate,
     Drain,
@@ -588,6 +587,17 @@ pub enum Terminal{
     Time
 }
 
+impl Terminal{
+    fn to_string_concise(&self) -> &str {
+        match self {
+            Terminal::Bulk      => "b",
+            Terminal::Drain     => "d",
+            Terminal::Gate      => "g",
+            Terminal::Source    => "s",
+            Terminal::Time      => "T"
+        }
+    }
+}
 
 #[derive(AsRefStr,Debug,Serialize,Deserialize,Copy,Clone)]
 pub enum Instrument {
@@ -642,11 +652,21 @@ enum CRange {
     LimitedAuto(String),
     Auto
 }
-#[derive(Debug,Serialize,Deserialize,Clone,Copy)]
+#[derive(Debug,Serialize,Deserialize,Clone,Copy,PartialEq)]
 pub enum Unit {
     Voltage,
     Current,
     Seconds
+}
+
+impl Unit{
+   fn to_string_concise(&self) -> &str{
+        match self {
+            Unit::Voltage => "V",
+            Unit::Current => "I",
+            Unit::Seconds => "T"
+        }
+    }
 }
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
@@ -660,6 +680,15 @@ impl TestData{
     fn to_compact(&self) -> TestDataCompact{
         TestDataCompact {terminal: self.terminal, unit: self.unit, count : self.data.len()}
     }
+    
+    fn from_compact(&self, testdatacompact : &Vec<TestDataCompact>) -> Option<TestData>{
+        let data : Vec<Vec<f64> >= testdatacompact.into_iter().map(|t|  self.data.get(t.count-1).unwrap_or(&Vec::new() ).clone() ).collect();
+        if data.len()>0 {
+            Some(TestData {terminal: self.terminal, unit: self.unit, data})
+        } else {
+            None
+        }
+    } 
 }
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
@@ -756,29 +785,50 @@ fn main() {
         .version("0.1")
         .author("C Karaliolios")
         .about("Processes Keithley 4200 parameter analyzer data and generates images and a interface")
-        .arg(Arg::with_name("directory")
-            .short("d")
-            .long("directory")
+        .arg(Arg::with_name("input_directory")
+            .short("i")
+            .long("input_dir")
             .value_name("PATH")
-            .help("Sets the directory to be searched")
-            .takes_value(true))
+            .help("Sets the directory to be searched"))
+        .arg(Arg::with_name("output_directory")
+            .short("o")
+            .long("output_dir")
+            .value_name("PATH")
+            .help("Sets the directory for the outputs to be collected in"))
+        .arg(Arg::with_name("script_directory")
+            .short("s")
+            .long("script_dir")
+            .value_name("PATH")
+            .help("Sets the directory where the python scripts selected out of"))    
         .get_matches();
 
-    //default directory
-    let path_string : String = format!("{}/tests", env!("CARGO_MANIFEST_DIR") );
-    // get directory from CLI
-    let directory = matches.value_of("directory").unwrap_or(path_string.as_str()).to_string();
+    //default input directory
+    let input_string : String = format!("{}/tests", env!("CARGO_MANIFEST_DIR") );
+    // get input directory from CLI
+    let input_dir = matches.value_of("input_directory").unwrap_or(input_string.as_str()).to_string();
+
+    //default output directory
+    let output_string : String = format!("{}/output", env!("CARGO_MANIFEST_DIR") );
+    // get output directory from CLI
+    let output_dir = matches.value_of("output_directory").unwrap_or(output_string.as_str()).to_string();
+
+    //default script directory
+    let script_string : String = format!("{}/scripts", env!("CARGO_MANIFEST_DIR") );
+    // get input directory from CLI
+    let script_dir = matches.value_of("script_directory").unwrap_or(script_string.as_str()).to_string();
+
+    
     //initialize id and measurement vector
-    let json = fs::read_to_string(format!("{}/result.json",path_string.as_str() ) );
+    let json = fs::read_to_string(format!("{}/result.json",output_dir ) );
     let storage :&mut Database = &mut Database::new();
     match json {
          Ok(string)  => *storage= serde_json::from_str::<Database>(string.as_str() ).unwrap_or(Database::new()),
          _ => ()
     };
-    populate_from_path(directory,String::from(""), storage).expect("Error transfercing path");
+    populate_from_path(input_dir,String::from(""), storage).expect("Error transfercing path");
  
     let v = serde_json::to_string(storage).unwrap();
-    fs::write( format!("{}/result.json",path_string.as_str() ), v.as_str() ).expect("error writing json");
+    fs::write( format!("{}/result.json",output_dir ), v.as_str() ).expect("error writing json");
  
    
     let html = format!(r#"<!doctype html>
@@ -852,7 +902,7 @@ fn main() {
                 Process (query) => *to_elm = {
                     println!("Processing");
                     let message_nr = to_elm.message_nr +1 ;
-                    query.process();
+                    query.process(storage.measurements.clone(), output_dir.as_str(), script_dir.as_str() );
                     let task_done = Task::Processing;
                     let measurements = to_elm.measurements.clone();
                     let filter_options = to_elm.filter_options.clone();
@@ -1163,17 +1213,199 @@ pub struct ProcessQuery {
     combined : bool,
     from : Vec<ProcessData>
 }
-impl ProcessQuery{
-    fn process(&self){}
+
+#[derive(Debug,Serialize)]
+pub struct DataSeries {
+    title : String,
+    data : Vec<ExportData>
+}
+#[derive(Debug,Serialize)]
+pub struct ExportData{
+    measurement_id : String,
+    designator : String,
+    data : Vec<Vec<f64>>
 }
 
-#[derive(Debug,Deserialize)]
+impl ExportData{
+    fn from_testdata(id:String, testdata : TestData) -> ExportData{
+        let designator :String= {
+            if testdata.terminal == Terminal::Time {
+                format!("T(s)")
+            } else {
+                format!("{}{}", testdata.unit.to_string_concise(),testdata.terminal.to_string_concise())
+            }
+        };
+        let data = testdata.data;
+        ExportData{measurement_id:id,designator,data}
+    }
+}
+
+
+impl ProcessQuery{
+    fn process(&self, measurements : Vec<Measurement>,output_dir: &str, script_dir:&str){
+
+        let selected_measurements : Vec<Measurement>= {
+            let ids :Vec<(String,Vec<TestDataCompact>)> = self.from.clone().into_iter().map(| pd| {(pd.id,pd.data)} ).collect();
+            let id :Vec<String> =  ids.iter().map(|id| id.0.clone()).collect();
+            let  measurements = measurements
+                                    .iter()
+                                    .filter(|m| id.clone().contains(&m.id));
+            println!("{:?}", measurements
+                                    .clone()
+                                    .map(|m| m.test_data.len())
+                                    .collect::<Vec<usize>>() 
+                    );
+            let result :Vec<Measurement>= measurements.map(|m| {
+                let testdatacompact :Vec<TestDataCompact>= ids.iter().find_map(|id| {
+                    if id.0 == m.id{
+                        Some(id.1.clone())
+                    } else {
+                        None
+                    }
+                }).unwrap();
+                let mut a= m.clone();
+                a.test_data=m.test_data
+                                .iter()
+                                .filter_map(|t| t.from_compact( &testdatacompact ))
+                                .collect::<Vec<TestData>>();
+                a
+            }).collect();
+
+            result
+        };
+
+        let diff_wafer : bool = {
+            let mut stringy = selected_measurements.iter().filter_map(|m| m.device.wafer).map(|p| p.to_string()).collect::<Vec<String>>();
+            stringy.sort_unstable();
+            stringy.dedup();
+            stringy.len() >1
+        };
+        let diff_die : bool = {
+            let mut stringy = selected_measurements.iter().filter_map(|m| m.device.die.clone()).map(|d| format!("{}{}",d.0,d.1)).collect::<Vec<String>>();
+            stringy.sort_unstable();
+            stringy.dedup();
+            stringy.len() >1
+        };
+        let diff_temp : bool = {
+            let mut stringy = selected_measurements.iter().filter_map(|m| m.device.temperature).collect::<Vec<u32>>();
+            stringy.sort_unstable();
+            stringy.dedup();
+            stringy.len() >1
+        };
+        let diff_width : bool = {
+            let mut stringy = selected_measurements.iter().filter_map(|m| m.device.width).map(|w| w.to_string()).collect::<Vec<String>>();
+            stringy.sort_unstable();
+            stringy.dedup();
+            stringy.len() >1
+        };
+        let diff_length : bool = {
+            let mut stringy = selected_measurements.iter().filter_map(|m| m.device.length).map(|l| l.to_string()).collect::<Vec<String>>();
+            stringy.sort_unstable();
+            stringy.dedup();
+            stringy.len() >1
+        };
+
+
+        for pt in self.what.iter() {
+            let testdata_total =  selected_measurements.iter().map(|m| {
+                let testdata = m.test_data.clone();
+                let normalize = |t:TestData| {
+                    let data :Vec<Vec<f64>>= t.data.iter().map(|col|{
+                        let sum :f64= col.iter().sum();
+                        let average :f64= sum/( col.len() as f64);
+                        col.into_iter().map(|i| i/average).collect::<Vec<f64>>()
+                    }).collect();
+                    TestData{data,..t}
+                };
+                let data :Vec<ExportData> = {
+                    let temp = match pt {
+                        ProcessingType::Raw => {
+                            testdata
+                        },
+                        ProcessingType::Id_versus_time => {
+                            testdata.into_iter().filter(|t| t.terminal == Terminal::Time || (t.terminal == Terminal::Drain && t.unit == Unit::Current) ).collect::<Vec<TestData>>()
+                        },
+                        ProcessingType::Id_normalized_versus_time =>{
+                            let ids :Vec<TestData>= testdata.clone().into_iter().filter(|t| t.terminal == Terminal::Drain && t.unit == Unit::Current ).map(normalize).collect();
+                            let mut times :Vec<TestData>= testdata.into_iter().filter(|t| t.terminal == Terminal::Time ).collect();
+                            ids.iter().for_each(|t| times.push(t.clone()));
+                            times
+                        },
+                        ProcessingType::Id_bins =>{
+                            testdata.into_iter().filter(|t|t.terminal == Terminal::Drain && t.unit == Unit::Current ).collect::<Vec<TestData>>()
+                        },
+                        ProcessingType::Id_bins_normalized => {
+                            testdata.into_iter().filter(|t|t.terminal == Terminal::Drain && t.unit == Unit::Current ).map(normalize).collect::<Vec<TestData>>()
+                        },
+                        ProcessingType::Id_for_swept_VDS_and_VGS => {
+                            testdata.into_iter().filter(|t| (t.terminal == Terminal::Drain && t.unit == Unit::Current) || (t.terminal == Terminal::Drain && t.unit == Unit::Voltage) || (t.terminal == Terminal::Gate && t.unit == Unit::Voltage) ).collect::<Vec<TestData>>()
+                        }
+                    };
+                    temp.into_iter().map(|t| ExportData::from_testdata(m.id.clone(),t)).collect::<Vec<ExportData>>()
+                };
+                let title : String = {
+                    let wafer = if diff_wafer {
+                        m.device.wafer.and_then(|w| Some(format!("P={} " ,w)) ).unwrap_or("".to_string())
+                    } else {"".to_string()};
+                    let die = if diff_die {
+                        m.device.die.clone().and_then(|d| Some(format!("D={}{} ",d.0,d.1)) ).unwrap_or("".to_string())
+                    } else {"".to_string()};
+                    let temp = if diff_temp {
+                        m.device.temperature.and_then(|t| Some(format!("T={}°K " ,t)) ).unwrap_or("".to_string())
+                    } else {"".to_string()};
+                    let width = if diff_width {
+                        m.device.width.and_then(|w| { if w > 100.0 {
+                            Some(format!("W={}μm",(w/1000.0)))
+                        } else {
+                            Some(format!("W={}nm ",w))
+                        }} ).unwrap_or("".to_string())
+                    } else {"".to_string()};
+                    let length = if diff_length {
+                        m.device.length.and_then(|l| Some(format!("L={} " ,l)) ).unwrap_or("".to_string())
+                    } else {"".to_string()};
+                    let id = if diff_wafer&& diff_die && diff_temp && diff_width && diff_length {
+                        m.id.clone()
+                    } else {
+                        "".to_string()
+                    };
+
+                    format!("{}{}{}{}{}{}",wafer,die,temp,width,length,id)
+                };
+
+                DataSeries{title,data}
+
+            }).collect::<Vec<DataSeries>>();
+            
+            if self.combined{
+                match pt {
+                    ProcessingType::Raw => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/Raw.json",output_dir ), v.as_str() ).expect("error writing json");
+                    },
+                    _ => {}
+                }
+            } else {
+                match pt {
+                    ProcessingType::Raw => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/Raw.json",output_dir ), v.as_str() ).expect("error writing json");
+                    },
+                    _ => {}
+                }
+            }
+            
+        }
+
+    }//fm
+}//impl
+
+#[derive(Debug,Deserialize,Clone)]
 pub struct ProcessData {
     id : String,
     data : Vec<TestDataCompact> 
 }
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug,Deserialize,Clone)]
 #[serde(tag = "process_type")]
 pub enum ProcessingType {
     Raw,

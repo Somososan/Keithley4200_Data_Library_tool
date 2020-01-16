@@ -140,10 +140,10 @@ update msg model =
                 updateEntry maybeEntry =
                     case maybeEntry of
                         Just oldEntry ->
-                            Just { oldEntry | selected = state }
+                            Just { oldEntry | data = all_data, selected = state }
 
                         Nothing ->
-                            Just { data = [], selected = state }
+                            Just { data = all_data, selected = state }
 
                 entries =
                     model
@@ -211,9 +211,26 @@ update msg model =
 
         ChangeAllEntries state ->
             let
+                make_data_list testdata =
+                    let
+                        base_data n =
+                            { terminal = testdata.terminal, unit = testdata.unit, count = n }
+                    in
+                    List.range 1 testdata.count
+                        |> List.map base_data
+
+                all_data id =
+                    model
+                        |> .measurements
+                        |> List.filter (\m -> m.id == id)
+                        |> List.head
+                        |> Maybe.map (\m -> m.test_data)
+                        |> Maybe.withDefault []
+                        |> List.concatMap make_data_list
+
                 updateEntry : M_ID -> Entry -> Entry
-                updateEntry _ oldEntry =
-                    { oldEntry | selected = state }
+                updateEntry id oldEntry =
+                    { oldEntry | selected = state, data = all_data id }
 
                 entries =
                     model

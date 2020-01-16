@@ -784,11 +784,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.bI.N === region.aA.N)
+	if (region.bI.P === region.aB.P)
 	{
-		return 'on line ' + region.bI.N;
+		return 'on line ' + region.bI.P;
 	}
-	return 'on lines ' + region.bI.N + ' through ' + region.aA.N;
+	return 'on lines ' + region.bI.P + ' through ' + region.aB.P;
 }
 
 
@@ -2659,9 +2659,9 @@ var _VirtualDom_mapEventTuple = F2(function(func, tuple)
 var _VirtualDom_mapEventRecord = F2(function(func, record)
 {
 	return {
-		aI: func(record.aI),
-		aX: record.aX,
-		aN: record.aN
+		aJ: func(record.aJ),
+		aY: record.aY,
+		aO: record.aO
 	}
 });
 
@@ -2929,11 +2929,11 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
 		// 3 = Custom
 
 		var value = result.a;
-		var message = !tag ? value : tag < 3 ? value.a : value.aI;
-		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.aX;
+		var message = !tag ? value : tag < 3 ? value.a : value.aJ;
+		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.aY;
 		var currentEventNode = (
 			stopPropagation && event.stopPropagation(),
-			(tag == 2 ? value.b : tag == 3 && value.aN) && event.preventDefault(),
+			(tag == 2 ? value.b : tag == 3 && value.aO) && event.preventDefault(),
 			eventNode
 		);
 		var tagger;
@@ -3923,7 +3923,7 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 		impl.bR,
 		impl.bL,
 		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.ak && impl.ak(sendToApp)
+			var divertHrefToApp = impl.am && impl.am(sendToApp)
 			var view = impl.bT;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
@@ -3998,7 +3998,7 @@ function _Browser_application(impl)
 	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
 
 	return _Browser_document({
-		ak: function(sendToApp)
+		am: function(sendToApp)
 		{
 			key.a = sendToApp;
 			_Browser_window.addEventListener('popstate', key);
@@ -4014,9 +4014,9 @@ function _Browser_application(impl)
 					var next = $elm$url$Url$fromString(href).a;
 					sendToApp(onUrlRequest(
 						(next
-							&& curr.aQ === next.aQ
-							&& curr.aE === next.aE
-							&& curr.aM.a === next.aM.a
+							&& curr.aR === next.aR
+							&& curr.aF === next.aF
+							&& curr.aN.a === next.aN.a
 						)
 							? $elm$browser$Browser$Internal(next)
 							: $elm$browser$Browser$External(href)
@@ -4187,12 +4187,12 @@ var _Browser_call = F2(function(functionName, id)
 function _Browser_getViewport()
 {
 	return {
-		aU: _Browser_getScene(),
+		aV: _Browser_getScene(),
 		a2: {
-			X: _Browser_window.pageXOffset,
-			Y: _Browser_window.pageYOffset,
+			_: _Browser_window.pageXOffset,
+			aa: _Browser_window.pageYOffset,
 			a6: _Browser_doc.documentElement.clientWidth,
-			C: _Browser_doc.documentElement.clientHeight
+			E: _Browser_doc.documentElement.clientHeight
 		}
 	};
 }
@@ -4203,7 +4203,7 @@ function _Browser_getScene()
 	var elem = _Browser_doc.documentElement;
 	return {
 		a6: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		C: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
+		E: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
 	};
 }
 
@@ -4226,15 +4226,15 @@ function _Browser_getViewportOf(id)
 	return _Browser_withNode(id, function(node)
 	{
 		return {
-			aU: {
+			aV: {
 				a6: node.scrollWidth,
-				C: node.scrollHeight
+				E: node.scrollHeight
 			},
 			a2: {
-				X: node.scrollLeft,
-				Y: node.scrollTop,
+				_: node.scrollLeft,
+				aa: node.scrollTop,
 				a6: node.clientWidth,
-				C: node.clientHeight
+				E: node.clientHeight
 			}
 		};
 	});
@@ -4264,18 +4264,18 @@ function _Browser_getElement(id)
 		var x = _Browser_window.pageXOffset;
 		var y = _Browser_window.pageYOffset;
 		return {
-			aU: _Browser_getScene(),
+			aV: _Browser_getScene(),
 			a2: {
-				X: x,
-				Y: y,
+				_: x,
+				aa: y,
 				a6: _Browser_doc.documentElement.clientWidth,
-				C: _Browser_doc.documentElement.clientHeight
+				E: _Browser_doc.documentElement.clientHeight
 			},
 			bh: {
-				X: x + rect.left,
-				Y: y + rect.top,
+				_: x + rect.left,
+				aa: y + rect.top,
 				a6: rect.width,
-				C: rect.height
+				E: rect.height
 			}
 		};
 	});
@@ -4851,7 +4851,7 @@ var $elm$url$Url$Http = 0;
 var $elm$url$Url$Https = 1;
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
-		return {aD: fragment, aE: host, aK: path, aM: port_, aQ: protocol, aR: query};
+		return {aE: fragment, aF: host, aL: path, aN: port_, aR: protocol, aS: query};
 	});
 var $elm$core$String$contains = _String_contains;
 var $elm$core$String$length = _String_length;
@@ -5135,12 +5135,12 @@ var $elm$core$Dict$RBEmpty_elm_builtin = {$: -2};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $author$project$FilterOptions$FilterOptions = F9(
 	function (sheet_names, widths, lengths, temps, processes, dies, test_types, measurement_speeds, dates) {
-		return {aw: dates, az: dies, aH: lengths, bv: measurement_speeds, aP: processes, aW: sheet_names, a$: temps, ao: test_types, a7: widths};
+		return {ax: dates, aA: dies, aI: lengths, bv: measurement_speeds, aQ: processes, aX: sheet_names, a0: temps, ap: test_types, a7: widths};
 	});
 var $author$project$FilterOptions$empty = A9($author$project$FilterOptions$FilterOptions, $elm$core$Dict$empty, $elm$core$Dict$empty, $elm$core$Dict$empty, $elm$core$Dict$empty, $elm$core$Dict$empty, $elm$core$Dict$empty, $elm$core$Dict$empty, $elm$core$Dict$empty, $elm$core$Dict$empty);
 var $author$project$FilterQuery$FilterQuery = F9(
 	function (sheet_names, widths, lengths, temps, wafer, dies, test_type, measurement_speeds, dates_between) {
-		return {ax: dates_between, az: dies, aH: lengths, bv: measurement_speeds, aW: sheet_names, a$: temps, a0: test_type, a5: wafer, a7: widths};
+		return {ay: dates_between, aA: dies, aI: lengths, bv: measurement_speeds, aX: sheet_names, a0: temps, a1: test_type, a5: wafer, a7: widths};
 	});
 var $author$project$FilterQuery$empty = A9(
 	$author$project$FilterQuery$FilterQuery,
@@ -5170,7 +5170,7 @@ var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$toRust = _Platform_outgoingPort('toRust', $elm$core$Basics$identity);
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
-		{A: false, bl: $author$project$FilterOptions$empty, g: $author$project$FilterQuery$empty, bw: _List_Nil, bx: 0, D: false, E: 0, j: _List_Nil, e: $elm$core$Dict$empty},
+		{C: false, bl: $author$project$FilterOptions$empty, g: $author$project$FilterQuery$empty, bw: _List_Nil, bx: 0, F: false, G: 0, j: _List_Nil, e: $elm$core$Dict$empty},
 		$author$project$Main$toRust(
 			$elm$json$Json$Encode$object(
 				_List_fromArray(
@@ -5367,11 +5367,11 @@ var $author$project$FilterOptions$decode = A3(
 									$elm$json$Json$Decode$succeed($author$project$FilterOptions$FilterOptions))))))))));
 var $author$project$MeasurementCompact$MeasurementCompact = F8(
 	function (id, file_path, sheet_name, device, test_parameter, test_time_stamp, terminals, test_data) {
-		return {f: device, aC: file_path, m: id, aV: sheet_name, am: terminals, an: test_data, l: test_parameter, bO: test_time_stamp};
+		return {f: device, aD: file_path, k: id, aW: sheet_name, ao: terminals, X: test_data, m: test_parameter, bO: test_time_stamp};
 	});
 var $author$project$Device$Device = F5(
 	function (wafer, die, temperature, width, length) {
-		return {ay: die, aG: length, a_: temperature, a5: wafer, a6: width};
+		return {az: die, aH: length, a$: temperature, a5: wafer, a6: width};
 	});
 var $author$project$Wafer$GF22 = 1;
 var $author$project$Wafer$MINOXG = 0;
@@ -5439,7 +5439,7 @@ var $author$project$Device$decode = A3(
 					$elm$json$Json$Decode$succeed($author$project$Device$Device))))));
 var $author$project$TerminalParameter$TerminalParameter = F8(
 	function (terminal, instrument, operational_mode, compliance, voltage, voltage_range, current, current_range) {
-		return {at: compliance, au: current, av: current_range, bs: instrument, x: operational_mode, Q: terminal, a3: voltage, a4: voltage_range};
+		return {au: compliance, av: current, aw: current_range, bs: instrument, y: operational_mode, A: terminal, a3: voltage, a4: voltage_range};
 	});
 var $author$project$CurrentRange$Auto = {$: 1};
 var $author$project$CurrentRange$LimitedAuto = function (a) {
@@ -5542,7 +5542,7 @@ var $author$project$Instrument$decode = A2(
 	$elm$json$Json$Decode$string);
 var $author$project$OpMode$OpMode = F5(
 	function (op_type, bias, start, stop, stepsize) {
-		return {bb: bias, bE: op_type, bI: start, bJ: stepsize, al: stop};
+		return {bb: bias, bE: op_type, bI: start, bJ: stepsize, an: stop};
 	});
 var $author$project$OpModeType$Common = 6;
 var $author$project$OpModeType$CurrentBias = 3;
@@ -5674,7 +5674,7 @@ var $author$project$TerminalParameter$decode = A3(
 								$elm$json$Json$Decode$succeed($author$project$TerminalParameter$TerminalParameter)))))))));
 var $author$project$TestDataCompact$TestDataCompact = F3(
 	function (terminal, unit, count) {
-		return {Z: count, Q: terminal, a1: unit};
+		return {M: count, A: terminal, Z: unit};
 	});
 var $author$project$Unit$Current = 1;
 var $author$project$Unit$Seconds = 2;
@@ -5709,7 +5709,7 @@ var $author$project$TestDataCompact$decode = A3(
 			$elm$json$Json$Decode$succeed($author$project$TestDataCompact$TestDataCompact))));
 var $author$project$TestParameter$TestParameter = F7(
 	function (test_type, measurement_speed, ad_aperture, filter_factor, interval_time, sweep_delay_time, hold_time) {
-		return {a8: ad_aperture, bk: filter_factor, bo: hold_time, bt: interval_time, ad: measurement_speed, bM: sweep_delay_time, a0: test_type};
+		return {a8: ad_aperture, bk: filter_factor, bo: hold_time, bt: interval_time, af: measurement_speed, bM: sweep_delay_time, a1: test_type};
 	});
 var $author$project$MeasurementSpeed$Custom = 3;
 var $author$project$MeasurementSpeed$Fast = 0;
@@ -5778,7 +5778,7 @@ var $author$project$TestParameter$decode = A3(
 							$elm$json$Json$Decode$succeed($author$project$TestParameter$TestParameter))))))));
 var $author$project$TimeStamp$TimeStamp = F6(
 	function (year, month, day, hour, minute, second) {
-		return {_: day, aa: hour, af: minute, ag: month, aj: second, aq: year};
+		return {ab: day, ac: hour, ah: minute, ai: month, al: second, ar: year};
 	});
 var $author$project$TimeStamp$decode = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -5965,13 +5965,13 @@ var $author$project$Date$encode = function (date) {
 						[
 							_Utils_Tuple2(
 							'year',
-							$elm$json$Json$Encode$int(date.aq)),
+							$elm$json$Json$Encode$int(date.ar)),
 							_Utils_Tuple2(
 							'month',
-							$elm$json$Json$Encode$int(date.ag)),
+							$elm$json$Json$Encode$int(date.ai)),
 							_Utils_Tuple2(
 							'day',
-							$elm$json$Json$Encode$int(date._))
+							$elm$json$Json$Encode$int(date.ab))
 						])))
 			]));
 };
@@ -6013,25 +6013,25 @@ var $author$project$FilterQuery$encode = function (query) {
 			[
 				_Utils_Tuple2(
 				'sheet_names',
-				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, query.aW)),
+				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, query.aX)),
 				_Utils_Tuple2(
 				'widths',
 				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, query.a7)),
 				_Utils_Tuple2(
 				'lengths',
-				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, query.aH)),
+				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, query.aI)),
 				_Utils_Tuple2(
 				'temps',
-				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, query.a$)),
+				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, query.a0)),
 				_Utils_Tuple2(
 				'wafer',
 				$elm$json$Json$Encode$string(query.a5)),
 				_Utils_Tuple2(
 				'dies',
-				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, query.az)),
+				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, query.aA)),
 				_Utils_Tuple2(
 				'test_type',
-				$elm$json$Json$Encode$string(query.a0)),
+				$elm$json$Json$Encode$string(query.a1)),
 				_Utils_Tuple2(
 				'measurement_speeds',
 				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, query.bv)),
@@ -6041,7 +6041,7 @@ var $author$project$FilterQuery$encode = function (query) {
 					$author$project$EncodeHelper$tuple2,
 					$author$project$EncodeHelper$maybe($author$project$Date$encode),
 					$author$project$EncodeHelper$maybe($author$project$Date$encode),
-					query.ax))
+					query.ay))
 			]));
 };
 var $author$project$ToRust$filter = function (query) {
@@ -6178,13 +6178,13 @@ var $author$project$TestDataCompact$encode = function (test_data) {
 			[
 				_Utils_Tuple2(
 				'terminal',
-				$author$project$Terminal$encode(test_data.Q)),
+				$author$project$Terminal$encode(test_data.A)),
 				_Utils_Tuple2(
 				'unit',
-				$author$project$Unit$encode(test_data.a1)),
+				$author$project$Unit$encode(test_data.Z)),
 				_Utils_Tuple2(
 				'count',
-				$elm$json$Json$Encode$int(test_data.Z))
+				$elm$json$Json$Encode$int(test_data.M))
 			]));
 };
 var $author$project$ProcessData$encode = function (pdata) {
@@ -6193,10 +6193,10 @@ var $author$project$ProcessData$encode = function (pdata) {
 			[
 				_Utils_Tuple2(
 				'id',
-				$elm$json$Json$Encode$string(pdata.m)),
+				$elm$json$Json$Encode$string(pdata.k)),
 				_Utils_Tuple2(
 				'data',
-				A2($elm$json$Json$Encode$list, $author$project$TestDataCompact$encode, pdata.K))
+				A2($elm$json$Json$Encode$list, $author$project$TestDataCompact$encode, pdata.v))
 			]));
 };
 var $author$project$ProcessingType$encode = function (kind) {
@@ -6754,29 +6754,16 @@ var $author$project$Main$update = F2(
 			case 0:
 				var id = msg.a;
 				var state = msg.b;
-				var updateEntry = function (maybeEntry) {
-					if (!maybeEntry.$) {
-						var oldEntry = maybeEntry.a;
-						return $elm$core$Maybe$Just(
-							_Utils_update(
-								oldEntry,
-								{p: state}));
-					} else {
-						return $elm$core$Maybe$Just(
-							{K: _List_Nil, p: state});
-					}
-				};
 				var string = state ? (id + 'checked') : (id + 'unchecked');
 				var make_data_list = function (testdata) {
 					var base_data = function (n) {
-						return {Z: n, Q: testdata.Q, a1: testdata.a1};
+						return {M: n, A: testdata.A, Z: testdata.Z};
 					};
 					return A2(
 						$elm$core$List$map,
 						base_data,
-						A2($elm$core$List$range, 1, testdata.Z));
+						A2($elm$core$List$range, 1, testdata.M));
 				};
-				var entries = A3($elm$core$Dict$update, id, updateEntry, model.e);
 				var all_data = A2(
 					$elm$core$List$concatMap,
 					make_data_list,
@@ -6786,15 +6773,28 @@ var $author$project$Main$update = F2(
 						A2(
 							$elm$core$Maybe$map,
 							function (m) {
-								return m.an;
+								return m.X;
 							},
 							$elm$core$List$head(
 								A2(
 									$elm$core$List$filter,
 									function (m) {
-										return _Utils_eq(m.m, id);
+										return _Utils_eq(m.k, id);
 									},
 									model.bw)))));
+				var updateEntry = function (maybeEntry) {
+					if (!maybeEntry.$) {
+						var oldEntry = maybeEntry.a;
+						return $elm$core$Maybe$Just(
+							_Utils_update(
+								oldEntry,
+								{v: all_data, p: state}));
+					} else {
+						return $elm$core$Maybe$Just(
+							{v: all_data, p: state});
+					}
+				};
+				var entries = A3($elm$core$Dict$update, id, updateEntry, model.e);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -6807,7 +6807,7 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{A: state}),
+						{C: state}),
 					$author$project$Main$toRust(
 						$author$project$ToRust$log(string)));
 			case 2:
@@ -6818,7 +6818,7 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{D: state, j: old_raw}),
+						{F: state, j: old_raw}),
 					$author$project$Main$toRust(
 						$author$project$ToRust$log(string)));
 			case 3:
@@ -6834,13 +6834,45 @@ var $author$project$Main$update = F2(
 						$author$project$ToRust$log(string)));
 			case 4:
 				var state = msg.a;
+				var string = state ? 'Set all entries' : 'Cleared all entries';
+				var make_data_list = function (testdata) {
+					var base_data = function (n) {
+						return {M: n, A: testdata.A, Z: testdata.Z};
+					};
+					return A2(
+						$elm$core$List$map,
+						base_data,
+						A2($elm$core$List$range, 1, testdata.M));
+				};
+				var all_data = function (id) {
+					return A2(
+						$elm$core$List$concatMap,
+						make_data_list,
+						A2(
+							$elm$core$Maybe$withDefault,
+							_List_Nil,
+							A2(
+								$elm$core$Maybe$map,
+								function (m) {
+									return m.X;
+								},
+								$elm$core$List$head(
+									A2(
+										$elm$core$List$filter,
+										function (m) {
+											return _Utils_eq(m.k, id);
+										},
+										model.bw)))));
+				};
 				var updateEntry = F2(
-					function (_v2, oldEntry) {
+					function (id, oldEntry) {
 						return _Utils_update(
 							oldEntry,
-							{p: state});
+							{
+								v: all_data(id),
+								p: state
+							});
 					});
-				var string = state ? 'Set all entries' : 'Cleared all entries';
 				var entries = A2($elm$core$Dict$map, updateEntry, model.e);
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -6881,7 +6913,7 @@ var $author$project$Main$update = F2(
 				var filter = model.g;
 				var new_filter = _Utils_update(
 					filter,
-					{a0: ttype});
+					{a1: ttype});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -6895,24 +6927,24 @@ var $author$project$Main$update = F2(
 					var ids = A2(
 						$elm$core$List$map,
 						function ($) {
-							return $.m;
+							return $.k;
 						},
 						fromrust.bw);
-					var default_entry = {K: _List_Nil, p: false};
+					var default_entry = {v: _List_Nil, p: false};
 					var entries = A2($elm$core$List$repeat, list_size, default_entry);
 					return $elm$core$Dict$fromList(
 						A2($elm_community$list_extra$List$Extra$zip, ids, entries));
 				}();
 				var selected_entries_adjusted = function () {
 					var filter_fn = F2(
-						function (id, _v3) {
+						function (id, _v2) {
 							return A2(
 								$elm$core$List$member,
 								id,
 								A2(
 									$elm$core$List$map,
 									function ($) {
-										return $.m;
+										return $.k;
 									},
 									fromrust.bw));
 						});
@@ -6922,28 +6954,28 @@ var $author$project$Main$update = F2(
 						selected_entries_init);
 				}();
 				var filters_used_init = {
-					ax: _Utils_Tuple2($elm$core$Maybe$Nothing, $elm$core$Maybe$Nothing),
-					az: $elm$core$Dict$keys(fromrust.bl.az),
-					aH: $elm$core$Dict$keys(fromrust.bl.aH),
+					ay: _Utils_Tuple2($elm$core$Maybe$Nothing, $elm$core$Maybe$Nothing),
+					aA: $elm$core$Dict$keys(fromrust.bl.aA),
+					aI: $elm$core$Dict$keys(fromrust.bl.aI),
 					bv: $elm$core$Dict$keys(fromrust.bl.bv),
-					aW: $elm$core$Dict$keys(fromrust.bl.aW),
-					a$: $elm$core$Dict$keys(fromrust.bl.a$),
-					a0: A2(
+					aX: $elm$core$Dict$keys(fromrust.bl.aX),
+					a0: $elm$core$Dict$keys(fromrust.bl.a0),
+					a1: A2(
 						$elm$core$Maybe$withDefault,
 						'Sampling',
 						$elm$core$List$head(
-							$elm$core$Dict$keys(fromrust.bl.ao))),
+							$elm$core$Dict$keys(fromrust.bl.ap))),
 					a5: A2(
 						$elm$core$Maybe$withDefault,
 						'MINOXG',
 						$elm$core$List$head(
-							$elm$core$Dict$keys(fromrust.bl.aP))),
+							$elm$core$Dict$keys(fromrust.bl.aQ))),
 					a7: $elm$core$Dict$keys(fromrust.bl.a7)
 				};
 				return (!_Utils_eq(model.bx, fromrust.bx)) ? (_Utils_eq(fromrust.bN, $author$project$RustTask$init) ? _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{A: false, bl: fromrust.bl, g: filters_used_init, bw: fromrust.bw, bx: fromrust.bx, D: false, E: 0, j: _List_Nil, e: selected_entries_init}),
+						{C: false, bl: fromrust.bl, g: filters_used_init, bw: fromrust.bw, bx: fromrust.bx, F: false, G: 0, j: _List_Nil, e: selected_entries_init}),
 					$author$project$Main$toRust(
 						$author$project$ToRust$log('Init received'))) : _Utils_Tuple2(
 					_Utils_update(
@@ -6955,23 +6987,23 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{E: 0}),
+						{G: 0}),
 					$author$project$Main$toRust(
 						$author$project$ToRust$log('Select Page Opened')));
 			case 11:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{E: 1}),
+						{G: 1}),
 					$author$project$Main$toRust(
 						$author$project$ToRust$log('Process Page Opened')));
 			default:
 				var processdata = A2(
 					$elm$core$List$map,
-					function (_v4) {
-						var k = _v4.a;
-						var e = _v4.b;
-						return {K: e.K, m: k};
+					function (_v3) {
+						var k = _v3.a;
+						var e = _v3.b;
+						return {v: e.v, k: k};
 					},
 					$elm$core$Dict$toList(
 						A2(
@@ -6981,7 +7013,7 @@ var $author$project$Main$update = F2(
 									return e.p;
 								}),
 							model.e)));
-				var query = {bf: model.A, bm: processdata, bU: model.j};
+				var query = {bf: model.C, bm: processdata, bU: model.j};
 				return _Utils_Tuple2(
 					model,
 					$author$project$Main$toRust(
@@ -7150,10 +7182,10 @@ var $abadi199$elm_input_extra$MultiSelect$multiSelect = F3(
 				attributes,
 				_List_fromArray(
 					[
-						$abadi199$elm_input_extra$MultiSelect$onChange(options.O),
+						$abadi199$elm_input_extra$MultiSelect$onChange(options.Q),
 						$elm$html$Html$Attributes$multiple(true)
 					])),
-			A2($elm$core$List$map, toOption, options.L));
+			A2($elm$core$List$map, toOption, options.N));
 	});
 var $elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
@@ -7221,18 +7253,18 @@ var $author$project$Main$filterview = function (model) {
 		var optionList = A2(
 			$elm$core$List$map,
 			opt_gen,
-			$elm$core$Dict$toList(opts.aP));
-		return ($elm$core$Dict$size(opts.aP) > 1) ? A2(
+			$elm$core$Dict$toList(opts.aQ));
+		return ($elm$core$Dict$size(opts.aQ) > 1) ? A2(
 			$elm$html$Html$select,
 			_List_fromArray(
 				[
 					$elm$html$Html$Attributes$class('filter'),
 					$elm$html$Html$Attributes$autofocus(true),
 					$elm$html$Html$Attributes$size(
-					$elm$core$Dict$size(opts.ao)),
+					$elm$core$Dict$size(opts.ap)),
 					$author$project$Main$onChange($author$project$Main$ChangeWafer)
 				]),
-			optionList) : (($elm$core$Dict$size(opts.aP) === 1) ? A2(
+			optionList) : (($elm$core$Dict$size(opts.aQ) === 1) ? A2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
@@ -7247,7 +7279,7 @@ var $author$project$Main$filterview = function (model) {
 						$elm$core$Maybe$withDefault,
 						'default',
 						$elm$core$List$head(
-							$elm$core$Dict$keys(opts.aP))))
+							$elm$core$Dict$keys(opts.aQ))))
 				])) : A2(
 			$elm$html$Html$div,
 			_List_fromArray(
@@ -7269,7 +7301,7 @@ var $author$project$Main$filterview = function (model) {
 					[
 						$elm$html$Html$Attributes$value(key),
 						$elm$html$Html$Attributes$selected(
-						_Utils_eq(model.g.a0, key))
+						_Utils_eq(model.g.a1, key))
 					]),
 				_List_fromArray(
 					[
@@ -7280,18 +7312,18 @@ var $author$project$Main$filterview = function (model) {
 		var optionList = A2(
 			$elm$core$List$map,
 			opt_gen,
-			$elm$core$Dict$toList(opts.ao));
-		return ($elm$core$Dict$size(opts.ao) > 1) ? A2(
+			$elm$core$Dict$toList(opts.ap));
+		return ($elm$core$Dict$size(opts.ap) > 1) ? A2(
 			$elm$html$Html$select,
 			_List_fromArray(
 				[
 					$elm$html$Html$Attributes$class('filter'),
 					$elm$html$Html$Attributes$autofocus(true),
 					$elm$html$Html$Attributes$size(
-					$elm$core$Dict$size(opts.ao)),
+					$elm$core$Dict$size(opts.ap)),
 					$author$project$Main$onChange($author$project$Main$ChangeTestType)
 				]),
-			optionList) : (($elm$core$Dict$size(opts.ao) === 1) ? A2(
+			optionList) : (($elm$core$Dict$size(opts.ap) === 1) ? A2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
@@ -7306,7 +7338,7 @@ var $author$project$Main$filterview = function (model) {
 						$elm$core$Maybe$withDefault,
 						'default',
 						$elm$core$List$head(
-							$elm$core$Dict$keys(opts.ao))))
+							$elm$core$Dict$keys(opts.ap))))
 				])) : A2(
 			$elm$html$Html$div,
 			_List_fromArray(
@@ -7334,15 +7366,15 @@ var $author$project$Main$filterview = function (model) {
 			$elm$core$Dict$toList(options));
 	};
 	var filter = model.g;
-	var sel_dies = ($elm$core$Dict$size(opts.az) > 1) ? A3(
+	var sel_dies = ($elm$core$Dict$size(opts.aA) > 1) ? A3(
 		$abadi199$elm_input_extra$MultiSelect$multiSelect,
 		{
-			L: opt_items(opts.az),
-			O: function (s) {
+			N: opt_items(opts.aA),
+			Q: function (s) {
 				return $author$project$Main$ChangeFilter(
 					_Utils_update(
 						filter,
-						{az: s}));
+						{aA: s}));
 			}
 		},
 		_List_fromArray(
@@ -7350,9 +7382,9 @@ var $author$project$Main$filterview = function (model) {
 				$elm$html$Html$Attributes$class('filter'),
 				$elm$html$Html$Attributes$autofocus(true),
 				$elm$html$Html$Attributes$size(
-				$elm$core$Dict$size(opts.az))
+				$elm$core$Dict$size(opts.aA))
 			]),
-		filter.az) : (($elm$core$Dict$size(opts.az) === 1) ? A2(
+		filter.aA) : (($elm$core$Dict$size(opts.aA) === 1) ? A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
@@ -7367,7 +7399,7 @@ var $author$project$Main$filterview = function (model) {
 					$elm$core$Maybe$withDefault,
 					'default',
 					$elm$core$List$head(
-						$elm$core$Dict$keys(opts.az))))
+						$elm$core$Dict$keys(opts.aA))))
 			])) : A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -7378,15 +7410,15 @@ var $author$project$Main$filterview = function (model) {
 			[
 				$elm$html$Html$text('nope')
 			])));
-	var sel_lengths = ($elm$core$Dict$size(opts.aH) > 1) ? A3(
+	var sel_lengths = ($elm$core$Dict$size(opts.aI) > 1) ? A3(
 		$abadi199$elm_input_extra$MultiSelect$multiSelect,
 		{
-			L: opt_items(opts.aH),
-			O: function (s) {
+			N: opt_items(opts.aI),
+			Q: function (s) {
 				return $author$project$Main$ChangeFilter(
 					_Utils_update(
 						filter,
-						{aH: s}));
+						{aI: s}));
 			}
 		},
 		_List_fromArray(
@@ -7394,9 +7426,9 @@ var $author$project$Main$filterview = function (model) {
 				$elm$html$Html$Attributes$class('filter'),
 				$elm$html$Html$Attributes$autofocus(true),
 				$elm$html$Html$Attributes$size(
-				$elm$core$Dict$size(opts.aH))
+				$elm$core$Dict$size(opts.aI))
 			]),
-		filter.aH) : (($elm$core$Dict$size(opts.aH) === 1) ? A2(
+		filter.aI) : (($elm$core$Dict$size(opts.aI) === 1) ? A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
@@ -7411,7 +7443,7 @@ var $author$project$Main$filterview = function (model) {
 					$elm$core$Maybe$withDefault,
 					'default',
 					$elm$core$List$head(
-						$elm$core$Dict$keys(opts.aH))))
+						$elm$core$Dict$keys(opts.aI))))
 			])) : A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -7425,8 +7457,8 @@ var $author$project$Main$filterview = function (model) {
 	var sel_measurement_speeds = ($elm$core$Dict$size(opts.bv) > 1) ? A3(
 		$abadi199$elm_input_extra$MultiSelect$multiSelect,
 		{
-			L: opt_items(opts.bv),
-			O: function (s) {
+			N: opt_items(opts.bv),
+			Q: function (s) {
 				return $author$project$Main$ChangeFilter(
 					_Utils_update(
 						filter,
@@ -7468,15 +7500,15 @@ var $author$project$Main$filterview = function (model) {
 			[
 				$elm$html$Html$text('nope')
 			])));
-	var sel_temps = ($elm$core$Dict$size(opts.a$) > 1) ? A3(
+	var sel_temps = ($elm$core$Dict$size(opts.a0) > 1) ? A3(
 		$abadi199$elm_input_extra$MultiSelect$multiSelect,
 		{
-			L: opt_items(opts.a$),
-			O: function (s) {
+			N: opt_items(opts.a0),
+			Q: function (s) {
 				return $author$project$Main$ChangeFilter(
 					_Utils_update(
 						filter,
-						{a$: s}));
+						{a0: s}));
 			}
 		},
 		_List_fromArray(
@@ -7484,9 +7516,9 @@ var $author$project$Main$filterview = function (model) {
 				$elm$html$Html$Attributes$class('filter'),
 				$elm$html$Html$Attributes$autofocus(true),
 				$elm$html$Html$Attributes$size(
-				$elm$core$Dict$size(opts.a$))
+				$elm$core$Dict$size(opts.a0))
 			]),
-		filter.a$) : (($elm$core$Dict$size(opts.a$) === 1) ? A2(
+		filter.a0) : (($elm$core$Dict$size(opts.a0) === 1) ? A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
@@ -7501,7 +7533,7 @@ var $author$project$Main$filterview = function (model) {
 					$elm$core$Maybe$withDefault,
 					'default',
 					$elm$core$List$head(
-						$elm$core$Dict$keys(opts.a$))))
+						$elm$core$Dict$keys(opts.a0))))
 			])) : A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -7515,8 +7547,8 @@ var $author$project$Main$filterview = function (model) {
 	var sel_widths = ($elm$core$Dict$size(opts.a7) > 1) ? A3(
 		$abadi199$elm_input_extra$MultiSelect$multiSelect,
 		{
-			L: opt_items(opts.a7),
-			O: function (s) {
+			N: opt_items(opts.a7),
+			Q: function (s) {
 				return $author$project$Main$ChangeFilter(
 					_Utils_update(
 						filter,
@@ -7622,7 +7654,7 @@ var $elm$html$Html$tr = _VirtualDom_node('tr');
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $author$project$Main$measurementview = function (model) {
 	var row = function (measurement) {
-		var entry = A2($elm$core$Dict$get, measurement.m, model.e);
+		var entry = A2($elm$core$Dict$get, measurement.k, model.e);
 		var value = function () {
 			if (!entry.$) {
 				var e = entry.a;
@@ -7646,7 +7678,7 @@ var $author$project$Main$measurementview = function (model) {
 							_List_fromArray(
 								[
 									$elm$html$Html$Events$onCheck(
-									$author$project$Main$SelectEntry(measurement.m)),
+									$author$project$Main$SelectEntry(measurement.k)),
 									$elm$html$Html$Attributes$type_('checkbox'),
 									$elm$html$Html$Attributes$checked(value)
 								]),
@@ -7660,7 +7692,7 @@ var $author$project$Main$measurementview = function (model) {
 						]),
 					_List_fromArray(
 						[
-							$elm$html$Html$text(measurement.m)
+							$elm$html$Html$text(measurement.k)
 						])),
 					A2(
 					$elm$html$Html$td,
@@ -7697,7 +7729,7 @@ var $author$project$Main$measurementview = function (model) {
 											a,
 											$elm$core$String$fromInt(b));
 									},
-									measurement.f.ay)))
+									measurement.f.az)))
 						])),
 					A2(
 					$elm$html$Html$td,
@@ -7725,7 +7757,7 @@ var $author$project$Main$measurementview = function (model) {
 							A2(
 								$elm$core$Maybe$withDefault,
 								'',
-								A2($elm$core$Maybe$map, $elm$core$String$fromFloat, measurement.f.aG)))
+								A2($elm$core$Maybe$map, $elm$core$String$fromFloat, measurement.f.aH)))
 						])),
 					A2(
 					$elm$html$Html$td,
@@ -7739,7 +7771,7 @@ var $author$project$Main$measurementview = function (model) {
 							A2(
 								$elm$core$Maybe$withDefault,
 								'',
-								A2($elm$core$Maybe$map, $elm$core$String$fromInt, measurement.f.a_)))
+								A2($elm$core$Maybe$map, $elm$core$String$fromInt, measurement.f.a$)))
 						])),
 					A2(
 					$elm$html$Html$td,
@@ -7750,7 +7782,7 @@ var $author$project$Main$measurementview = function (model) {
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							$author$project$TestType$toString(measurement.l.a0))
+							$author$project$TestType$toString(measurement.m.a1))
 						])),
 					A2(
 					$elm$html$Html$td,
@@ -7761,7 +7793,7 @@ var $author$project$Main$measurementview = function (model) {
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							$author$project$MeasurementSpeed$toString(measurement.l.ad))
+							$author$project$MeasurementSpeed$toString(measurement.m.af))
 						]))
 				]));
 	};
@@ -8005,8 +8037,8 @@ var $elm_community$list_extra$List$Extra$uniqueBy = F2(
 	});
 var $author$project$Main$processoptionsview = function (model) {
 	var wafer = model.g.a5;
-	var test_type = model.g.a0;
-	var possible_process_options = (test_type === 'Sampling') ? (model.D ? _List_fromArray(
+	var test_type = model.g.a1;
+	var possible_process_options = (test_type === 'Sampling') ? (model.F ? _List_fromArray(
 		[$author$project$ProcessingType$raw, $author$project$ProcessingType$id_bins_normalized, $author$project$ProcessingType$id_normalized_versus_time]) : _List_fromArray(
 		[$author$project$ProcessingType$raw, $author$project$ProcessingType$id_bins, $author$project$ProcessingType$id_versus_time])) : _List_fromArray(
 		[$author$project$ProcessingType$raw, $author$project$ProcessingType$id_for_swept_VDS_and_VGS]);
@@ -8020,7 +8052,7 @@ var $author$project$Main$processoptionsview = function (model) {
 	}();
 	var selected_measurements = function () {
 		var filter_fn = function (measurement) {
-			return A2($elm$core$List$member, measurement.m, ids_selected);
+			return A2($elm$core$List$member, measurement.k, ids_selected);
 		};
 		return A2($elm$core$List$filter, filter_fn, model.bw);
 	}();
@@ -8029,7 +8061,7 @@ var $author$project$Main$processoptionsview = function (model) {
 			A2(
 				$elm$core$List$filterMap,
 				function (m) {
-					return m.f.aG;
+					return m.f.aH;
 				},
 				selected_measurements)));
 	var length_selected_list = A2(
@@ -8054,7 +8086,7 @@ var $author$project$Main$processoptionsview = function (model) {
 		A2(
 			$elm$core$List$map,
 			function (m) {
-				return m.l.ad;
+				return m.m.af;
 			},
 			selected_measurements));
 	var speed_selected_list = A2(
@@ -8103,7 +8135,7 @@ var $author$project$Main$processoptionsview = function (model) {
 		A2(
 			$elm$core$List$filterMap,
 			function (m) {
-				return m.f.ay;
+				return m.f.az;
 			},
 			selected_measurements));
 	var process_options = function () {
@@ -8153,7 +8185,7 @@ var $author$project$Main$processoptionsview = function (model) {
 					_List_fromArray(
 						[
 							$elm$html$Html$Attributes$type_('checkbox'),
-							$elm$html$Html$Attributes$checked(model.D),
+							$elm$html$Html$Attributes$checked(model.F),
 							$elm$html$Html$Events$onCheck($author$project$Main$ChangeNormalizeData)
 						]),
 					_List_Nil),
@@ -8178,7 +8210,7 @@ var $author$project$Main$processoptionsview = function (model) {
 					_List_fromArray(
 						[
 							$elm$html$Html$Attributes$type_('checkbox'),
-							$elm$html$Html$Attributes$checked(model.A),
+							$elm$html$Html$Attributes$checked(model.C),
 							$elm$html$Html$Events$onCheck($author$project$Main$ChangeCombineData)
 						]),
 					_List_Nil),
@@ -8450,27 +8482,27 @@ var $author$project$TimeStamp$toString = function (timestamp) {
 		$elm$core$String$padLeft,
 		4,
 		'0',
-		$elm$core$String$fromInt(timestamp.aq)) + ('/' + (A3(
+		$elm$core$String$fromInt(timestamp.ar)) + ('/' + (A3(
 		$elm$core$String$padLeft,
 		2,
 		'0',
-		$elm$core$String$fromInt(timestamp.ag)) + ('/' + (A3(
+		$elm$core$String$fromInt(timestamp.ai)) + ('/' + (A3(
 		$elm$core$String$padLeft,
 		2,
 		'0',
-		$elm$core$String$fromInt(timestamp._)) + (' ' + (A3(
+		$elm$core$String$fromInt(timestamp.ab)) + (' ' + (A3(
 		$elm$core$String$padLeft,
 		2,
 		'0',
-		$elm$core$String$fromInt(timestamp.aa)) + (':' + (A3(
+		$elm$core$String$fromInt(timestamp.ac)) + (':' + (A3(
 		$elm$core$String$padLeft,
 		2,
 		'0',
-		$elm$core$String$fromInt(timestamp.af)) + (':' + A3(
+		$elm$core$String$fromInt(timestamp.ah)) + (':' + A3(
 		$elm$core$String$padLeft,
 		2,
 		'0',
-		$elm$core$String$fromInt(timestamp.aj)))))))))));
+		$elm$core$String$fromInt(timestamp.al)))))))))));
 };
 var $author$project$UnitMeasured$toString = function (um) {
 	if (!um) {
@@ -8508,8 +8540,8 @@ var $author$project$Unit$toString_concise = function (unit) {
 };
 var $author$project$TestDataCompact$toString_concise = function (test_data) {
 	return _Utils_ap(
-		$author$project$Unit$toString_concise(test_data.a1),
-		$author$project$Terminal$toString_concise(test_data.Q));
+		$author$project$Unit$toString_concise(test_data.Z),
+		$author$project$Terminal$toString_concise(test_data.A));
 };
 var $elm$core$String$words = _String_words;
 var $author$project$Main$testdataselectionview = function (model) {
@@ -8579,7 +8611,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 			}
 		}();
 		var testtype = function () {
-			var string = $author$project$TestType$toString(measurement.l.a0);
+			var string = $author$project$TestType$toString(measurement.m.a1);
 			return _List_fromArray(
 				[
 					A2(
@@ -8605,7 +8637,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 				]);
 		}();
 		var temp = function () {
-			var _v18 = measurement.f.a_;
+			var _v18 = measurement.f.a$;
 			if (!_v18.$) {
 				var t = _v18.a;
 				return _List_fromArray(
@@ -8637,7 +8669,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 			}
 		}();
 		var sweep_delay_time = function () {
-			var _v17 = measurement.l.bM;
+			var _v17 = measurement.m.bM;
 			if (!_v17.$) {
 				var sdt = _v17.a;
 				return _List_fromArray(
@@ -8669,7 +8701,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 			}
 		}();
 		var speed = function () {
-			var string = $author$project$MeasurementSpeed$toString(measurement.l.ad);
+			var string = $author$project$MeasurementSpeed$toString(measurement.m.af);
 			return _List_fromArray(
 				[
 					A2(
@@ -8695,7 +8727,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 				]);
 		}();
 		var length = function () {
-			var _v16 = measurement.f.aG;
+			var _v16 = measurement.f.aH;
 			if (!_v16.$) {
 				var l = _v16.a;
 				return _List_fromArray(
@@ -8727,7 +8759,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 			}
 		}();
 		var interval_time = function () {
-			var _v15 = measurement.l.bt;
+			var _v15 = measurement.m.bt;
 			if (!_v15.$) {
 				var it = _v15.a;
 				return _List_fromArray(
@@ -8778,7 +8810,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 						$elm$core$List$repeat,
 						amount_of_measurements,
 						A2($elm$html$Html$td, _List_Nil, _List_Nil))));
-			var terminals = measurement.am;
+			var terminals = measurement.ao;
 			var vmeasured = function () {
 				var t_to_v = function (v) {
 					var _v14 = v.a3;
@@ -8875,7 +8907,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 				var list = A2(
 					$elm$core$List$map,
 					function (t) {
-						return $author$project$Terminal$toString(t.Q);
+						return $author$project$Terminal$toString(t.A);
 					},
 					terminals);
 				var inner = function (t) {
@@ -8909,7 +8941,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 			}();
 			var stop = function () {
 				var t_to_s = function (t) {
-					var stp = t.x.al;
+					var stp = t.y.an;
 					if (!stp.$) {
 						var s = stp.a;
 						return $elm$core$String$fromFloat(s);
@@ -8943,7 +8975,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 					A2(
 						$elm$core$List$filterMap,
 						function (t) {
-							return t.x.al;
+							return t.y.an;
 						},
 						terminals)) > 0) ? A2(
 					$elm$html$Html$tr,
@@ -8964,7 +8996,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 			}();
 			var stepsize = function () {
 				var t_to_s = function (t) {
-					var step = t.x.bJ;
+					var step = t.y.bJ;
 					if (!step.$) {
 						var s = step.a;
 						return $elm$core$String$fromFloat(s);
@@ -8998,7 +9030,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 					A2(
 						$elm$core$List$filterMap,
 						function (t) {
-							return t.x.al;
+							return t.y.an;
 						},
 						terminals)) > 0) ? A2(
 					$elm$html$Html$tr,
@@ -9030,7 +9062,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 									return $elm$html$Html$text(s);
 								},
 								$elm$core$String$words(
-									$author$project$OpModeType$toString(t.x.bE))));
+									$author$project$OpModeType$toString(t.y.bE))));
 					},
 					terminals);
 				var inner = function (op) {
@@ -9133,7 +9165,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 									A2(
 										$elm$core$Maybe$withDefault,
 										'-',
-										A2($elm$core$Maybe$map, $author$project$CurrentRange$toString, t.av)))));
+										A2($elm$core$Maybe$map, $author$project$CurrentRange$toString, t.aw)))));
 					},
 					terminals);
 				var inner = function (s) {
@@ -9149,7 +9181,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 					A2(
 						$elm$core$List$filterMap,
 						function (t) {
-							return t.av;
+							return t.aw;
 						},
 						terminals)) > 0) ? A2(
 					$elm$html$Html$tr,
@@ -9170,7 +9202,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 			}();
 			var compliance = function () {
 				var t_to_c = function (c) {
-					var _v10 = c.at;
+					var _v10 = c.au;
 					if (!_v10.$) {
 						var s = _v10.a;
 						return $elm$core$String$fromFloat(s);
@@ -9204,7 +9236,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 					A2(
 						$elm$core$List$filterMap,
 						function (t) {
-							return t.at;
+							return t.au;
 						},
 						terminals)) > 0) ? A2(
 					$elm$html$Html$tr,
@@ -9225,7 +9257,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 			}();
 			var cmeasured = function () {
 				var t_to_c = function (c) {
-					var _v9 = c.au;
+					var _v9 = c.av;
 					if (!_v9.$) {
 						var s = _v9.a;
 						return $author$project$UnitMeasured$toString(s);
@@ -9250,7 +9282,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 					A2(
 						$elm$core$List$filterMap,
 						function (t) {
-							return t.au;
+							return t.av;
 						},
 						terminals)) > 0) ? A2(
 					$elm$html$Html$tr,
@@ -9271,8 +9303,8 @@ var $author$project$Main$testdataselectionview = function (model) {
 			}();
 			var biasorstart = function () {
 				var t_to_bs = function (t) {
-					var start = t.x.bI;
-					var bias = t.x.bb;
+					var start = t.y.bI;
+					var bias = t.y.bb;
 					var _v8 = _Utils_Tuple2(bias, start);
 					if (!_v8.a.$) {
 						var b = _v8.a.a;
@@ -9329,7 +9361,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 				[terminal, instrument, opmode, biasorstart, stop, stepsize, compliance, voltage, vmeasured, vrange, current, cmeasured, crange]);
 		};
 		var hold_time = function () {
-			var string = $elm$core$String$fromFloat(measurement.l.bo);
+			var string = $elm$core$String$fromFloat(measurement.m.bo);
 			return _List_fromArray(
 				[
 					A2(
@@ -9355,7 +9387,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 				]);
 		}();
 		var filter_factor = function () {
-			var _v7 = measurement.l.bk;
+			var _v7 = measurement.m.bk;
 			if (!_v7.$) {
 				var ff = _v7.a;
 				return _List_fromArray(
@@ -9387,7 +9419,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 			}
 		}();
 		var die = function () {
-			var _v6 = measurement.f.ay;
+			var _v6 = measurement.f.az;
 			if (!_v6.$) {
 				var d = _v6.a;
 				return _List_fromArray(
@@ -9422,25 +9454,25 @@ var $author$project$Main$testdataselectionview = function (model) {
 			var testdata_without_time = A2(
 				$elm$core$List$filter,
 				function (t) {
-					var _v5 = $author$project$Terminal$toString_concise(t.Q);
+					var _v5 = $author$project$Terminal$toString_concise(t.A);
 					if (_v5 === 'T') {
 						return false;
 					} else {
 						return true;
 					}
 				},
-				measurement.an);
+				measurement.X);
 			var testdata_time = A2(
 				$elm$core$List$filter,
 				function (t) {
-					var _v4 = $author$project$Terminal$toString_concise(t.Q);
+					var _v4 = $author$project$Terminal$toString_concise(t.A);
 					if (_v4 === 'T') {
 						return true;
 					} else {
 						return false;
 					}
 				},
-				measurement.an);
+				measurement.X);
 			var cols = function (_v3) {
 				var inner = function (testdata) {
 					return A2(
@@ -9461,7 +9493,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 				var _v2 = $elm$core$List$head(testdata_without_time);
 				if (!_v2.$) {
 					var data = _v2.a;
-					return data.Z;
+					return data.M;
 				} else {
 					return 0;
 				}
@@ -9489,7 +9521,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 							'Series ' + $elm$core$String$fromInt(i))
 						]));
 			};
-			return _Utils_eq(measurement.l.a0, $author$project$TestType$sampling) ? _List_fromArray(
+			return _Utils_eq(measurement.m.a1, $author$project$TestType$sampling) ? _List_fromArray(
 				[
 					A2(
 					$elm$html$Html$tr,
@@ -9538,7 +9570,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 				]);
 		}();
 		var ad_aperture = function () {
-			var _v1 = measurement.l.a8;
+			var _v1 = measurement.m.a8;
 			if (!_v1.$) {
 				var ad = _v1.a;
 				return _List_fromArray(
@@ -9600,7 +9632,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 									_List_Nil,
 									_List_fromArray(
 										[
-											$elm$html$Html$text(measurement.m)
+											$elm$html$Html$text(measurement.k)
 										])),
 									$elm$html$Html$text('Timestamp'),
 									A2($elm$html$Html$br, _List_Nil, _List_Nil),
@@ -9692,7 +9724,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 									_List_fromArray(
 										[
 											$elm$html$Html$Attributes$colspan(
-											1 + $elm$core$List$length(measurement.am)),
+											1 + $elm$core$List$length(measurement.ao)),
 											$elm$html$Html$Attributes$class('text_table')
 										]),
 									_List_fromArray(
@@ -9701,7 +9733,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 										]))
 								])),
 						instruments_list(
-							$elm$core$List$length(measurement.am)))),
+							$elm$core$List$length(measurement.ao)))),
 					A2(
 					$elm$html$Html$table,
 					_List_fromArray(
@@ -9721,7 +9753,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 	}();
 	var selected_measurements = function () {
 		var filter_fn = function (measurement) {
-			return A2($elm$core$List$member, measurement.m, ids_selected);
+			return A2($elm$core$List$member, measurement.k, ids_selected);
 		};
 		return A2($elm$core$List$filter, filter_fn, model.bw);
 	}();
@@ -9729,7 +9761,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 };
 var $author$project$Main$view = function (model) {
 	var selectorprocess = function () {
-		var _v1 = model.E;
+		var _v1 = model.G;
 		if (!_v1) {
 			return _List_fromArray(
 				[
