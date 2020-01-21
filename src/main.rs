@@ -9,6 +9,8 @@ use clap::{Arg, App};
 use std::fs::{self};
 use std::iter::FromIterator;
 use boolinator::*;
+use std::process::Command;
+use std::io::{self, Write};
 
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
@@ -28,7 +30,7 @@ impl Database{
         let counter = self.id_day_counter.entry(string.clone()).or_insert(0);
         *counter += 1;
 
-        format!("{}:{}", string.as_str(), counter)
+        format!("{}-{}", string.as_str(), counter)
     }
 }
 
@@ -335,6 +337,12 @@ pub struct TimeStamp {
     hour    : u8,
     minute  : u8,
     second  : u8
+}
+
+impl std::fmt::Display for TimeStamp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}{}{} {}:{}:{}", self.year,self.month,self.day,self.hour,self.minute,self.second)        
+    }
 }
 
 impl TimeStamp {
@@ -682,7 +690,7 @@ impl TestData{
     }
     
     fn from_compact(&self, testdatacompact : &Vec<TestDataCompact>) -> Option<TestData>{
-        let data : Vec<Vec<f64> >= testdatacompact.into_iter().map(|t|  self.data.get(t.count-1).unwrap_or(&Vec::new() ).clone() ).collect();
+        let data : Vec<Vec<f64> >= testdatacompact.into_iter().filter(|t| t.terminal==self.terminal && t.unit==self.unit).map(|t|  self.data.get(t.count-1).unwrap_or(&Vec::new() ).clone() ).collect();
         if data.len()>0 {
             Some(TestData {terminal: self.terminal, unit: self.unit, data})
         } else {
@@ -890,7 +898,8 @@ fn main() {
                     let measurements :Vec<MeasurementCompact> = filter_options.into_filter_query().filter(measurements);
                     ToElm {message_nr,task_done,measurements,filter_options}
                 },
-                Log (string) => println!("{}", string), 
+                Log (string) => 
+                    println!("{}", string), 
                 Filter (query) => *to_elm = {
                     let message_nr = to_elm.message_nr +1 ;
                     println!("Filtering");
@@ -1250,11 +1259,6 @@ impl ProcessQuery{
             let  measurements = measurements
                                     .iter()
                                     .filter(|m| id.clone().contains(&m.id));
-            println!("{:?}", measurements
-                                    .clone()
-                                    .map(|m| m.test_data.len())
-                                    .collect::<Vec<usize>>() 
-                    );
             let result :Vec<Measurement>= measurements.map(|m| {
                 let testdatacompact :Vec<TestDataCompact>= ids.iter().find_map(|id| {
                     if id.0 == m.id{
@@ -1304,38 +1308,27 @@ impl ProcessQuery{
             stringy.dedup();
             stringy.len() >1
         };
+        let diff_time : bool = {
+            let mut stringy = selected_measurements.iter().map(|m| m.test_time_stamp).map(|l| l.to_string()).collect::<Vec<String>>();
+            stringy.sort_unstable();
+            stringy.dedup();
+            stringy.len() >1
+        };
 
 
         for pt in self.what.iter() {
             let testdata_total =  selected_measurements.iter().map(|m| {
                 let testdata = m.test_data.clone();
-                let normalize = |t:TestData| {
-                    let data :Vec<Vec<f64>>= t.data.iter().map(|col|{
-                        let sum :f64= col.iter().sum();
-                        let average :f64= sum/( col.len() as f64);
-                        col.into_iter().map(|i| i/average).collect::<Vec<f64>>()
-                    }).collect();
-                    TestData{data,..t}
-                };
                 let data :Vec<ExportData> = {
                     let temp = match pt {
                         ProcessingType::Raw => {
                             testdata
                         },
-                        ProcessingType::Id_versus_time => {
+                        ProcessingType::Id_versus_time | ProcessingType::Id_normalized_versus_time | ProcessingType::Psd => {
                             testdata.into_iter().filter(|t| t.terminal == Terminal::Time || (t.terminal == Terminal::Drain && t.unit == Unit::Current) ).collect::<Vec<TestData>>()
                         },
-                        ProcessingType::Id_normalized_versus_time =>{
-                            let ids :Vec<TestData>= testdata.clone().into_iter().filter(|t| t.terminal == Terminal::Drain && t.unit == Unit::Current ).map(normalize).collect();
-                            let mut times :Vec<TestData>= testdata.into_iter().filter(|t| t.terminal == Terminal::Time ).collect();
-                            ids.iter().for_each(|t| times.push(t.clone()));
-                            times
-                        },
-                        ProcessingType::Id_bins =>{
+                        ProcessingType::Id_bins | ProcessingType::Id_bins_normalized=>{
                             testdata.into_iter().filter(|t|t.terminal == Terminal::Drain && t.unit == Unit::Current ).collect::<Vec<TestData>>()
-                        },
-                        ProcessingType::Id_bins_normalized => {
-                            testdata.into_iter().filter(|t|t.terminal == Terminal::Drain && t.unit == Unit::Current ).map(normalize).collect::<Vec<TestData>>()
                         },
                         ProcessingType::Id_for_swept_VDS_and_VGS => {
                             testdata.into_iter().filter(|t| (t.terminal == Terminal::Drain && t.unit == Unit::Current) || (t.terminal == Terminal::Drain && t.unit == Unit::Voltage) || (t.terminal == Terminal::Gate && t.unit == Unit::Voltage) ).collect::<Vec<TestData>>()
@@ -1355,32 +1348,74 @@ impl ProcessQuery{
                     } else {"".to_string()};
                     let width = if diff_width {
                         m.device.width.and_then(|w| { if w > 100.0 {
-                            Some(format!("W={}μm",(w/1000.0)))
+                            Some(format!("W={}µm ",(w/1000.0)))
                         } else {
                             Some(format!("W={}nm ",w))
                         }} ).unwrap_or("".to_string())
                     } else {"".to_string()};
                     let length = if diff_length {
-                        m.device.length.and_then(|l| Some(format!("L={} " ,l)) ).unwrap_or("".to_string())
+                        m.device.length.and_then(|l| { if l > 100.0 {
+                            Some(format!("L={}µm ",(l/1000.0)))
+                        } else {
+                            Some(format!("L={}nm ",l))
+                        }} ).unwrap_or("".to_string())
                     } else {"".to_string()};
-                    let id = if diff_wafer&& diff_die && diff_temp && diff_width && diff_length {
+                    let id = if !(diff_wafer&& diff_die && diff_temp && diff_width && diff_length) && diff_time || self.from.len()==1{
                         m.id.clone()
                     } else {
-                        "".to_string()
+                        //println!("{} {} {} {} {} {} {}",diff_wafer,diff_die,diff_temp,diff_width,diff_length, diff_time,m.test_time_stamp);
+                        "Error No Distinctive Parameters".to_string()
                     };
 
                     format!("{}{}{}{}{}{}",wafer,die,temp,width,length,id)
                 };
-
+                //println!("title:{}", title);
                 DataSeries{title,data}
 
             }).collect::<Vec<DataSeries>>();
             
+            let python_script = |script :&str| {
+                let python_output = Command::new("python")
+                            .arg(format!("{1}/{0}.py",script,script_dir ))
+                            .arg(format!("{}",script_dir ))
+                            .arg(format!("{}",output_dir ))
+                            .output()
+                            .expect("process failed to execute");
+                println!("status of {}.py: {}", script, python_output.status);
+                io::stdout().write_all(&python_output.stdout).unwrap();
+                io::stderr().write_all(&python_output.stderr).unwrap();
+            };
+
             if self.combined{
                 match pt {
                     ProcessingType::Raw => {
                         let v = serde_json::to_string(&testdata_total).unwrap();
                         fs::write( format!("{}/Raw.json",output_dir ), v.as_str() ).expect("error writing json");
+                    },
+                    ProcessingType::Id_bins => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/id_bins.json",script_dir ), v.as_str() ).expect("error writing json");
+                        python_script("id_bins");
+                    },
+                    ProcessingType::Id_bins_normalized => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/id_bins_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
+                        python_script("id_bins_normalized");
+                    },
+                    ProcessingType::Id_versus_time => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/id_versus_time.json",script_dir ), v.as_str() ).expect("error writing json");
+                        python_script("id_versus_time");
+                    },
+                    ProcessingType::Id_normalized_versus_time => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/id_versus_time_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
+                        python_script("id_versus_time_normalized");
+                    },
+                    ProcessingType::Psd => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/psd.json",script_dir ), v.as_str() ).expect("error writing json");
+                        python_script("psd");
                     },
                     _ => {}
                 }
@@ -1389,6 +1424,31 @@ impl ProcessQuery{
                     ProcessingType::Raw => {
                         let v = serde_json::to_string(&testdata_total).unwrap();
                         fs::write( format!("{}/Raw.json",output_dir ), v.as_str() ).expect("error writing json");
+                    },
+                    ProcessingType::Id_bins => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/id_bins.json",script_dir ), v.as_str() ).expect("error writing json");
+                        python_script("id_bins");
+                    },
+                    ProcessingType::Id_bins_normalized => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/id_bins_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
+                        python_script("id_bins_normalized");
+                    },
+                    ProcessingType::Id_versus_time => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/id_versus_time.json",script_dir ), v.as_str() ).expect("error writing json");
+                        python_script("id_versus_time");
+                    },
+                    ProcessingType::Id_normalized_versus_time => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/id_versus_time_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
+                        python_script("id_versus_time_normalized");
+                    },
+                    ProcessingType::Psd => {
+                        let v = serde_json::to_string(&testdata_total).unwrap();
+                        fs::write( format!("{}/psd.json",script_dir ), v.as_str() ).expect("error writing json");
+                        python_script("psd");
                     },
                     _ => {}
                 }
@@ -1413,7 +1473,8 @@ pub enum ProcessingType {
     Id_normalized_versus_time,
     Id_bins,
     Id_bins_normalized,
-    Id_for_swept_VDS_and_VGS
+    Id_for_swept_VDS_and_VGS,
+    Psd
 }
 
 fn inline_style(s: &str) -> String {

@@ -704,7 +704,7 @@ processoptionsview model =
                     [ ProcessingType.raw, ProcessingType.id_bins_normalized, ProcessingType.id_normalized_versus_time ]
 
                 else
-                    [ ProcessingType.raw, ProcessingType.id_bins, ProcessingType.id_versus_time ]
+                    [ ProcessingType.raw, ProcessingType.id_bins, ProcessingType.id_versus_time, ProcessingType.psd ]
 
             else
                 [ ProcessingType.raw, ProcessingType.id_for_swept_VDS_and_VGS ]

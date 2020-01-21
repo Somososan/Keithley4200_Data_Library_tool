@@ -1,4 +1,4 @@
-module ProcessingType exposing (ProcessingType, encode, id_bins, id_bins_normalized, id_for_swept_VDS_and_VGS, id_normalized_versus_time, id_versus_time, raw, toString, toString_concise)
+module ProcessingType exposing (ProcessingType, encode, id_bins, id_bins_normalized, id_for_swept_VDS_and_VGS, id_normalized_versus_time, id_versus_time, psd, raw, toString, toString_concise)
 
 import Json.Encode as Encode
 
@@ -10,6 +10,7 @@ type ProcessingType
     | Id_bins
     | Id_bins_normalized
     | Id_for_swept_VDS_and_VGS
+    | Psd
 
 
 raw : ProcessingType
@@ -42,6 +43,11 @@ id_for_swept_VDS_and_VGS =
     Id_for_swept_VDS_and_VGS
 
 
+psd : ProcessingType
+psd =
+    Psd
+
+
 encode : ProcessingType -> Encode.Value
 encode kind =
     case kind of
@@ -62,6 +68,9 @@ encode kind =
 
         Id_for_swept_VDS_and_VGS ->
             Encode.object [ ( "process_type", Encode.string "Id_for_swept_VDS_and_VGS" ) ]
+
+        Psd ->
+            Encode.object [ ( "process_type", Encode.string "Psd" ) ]
 
 
 toString : ProcessingType -> String
@@ -85,6 +94,9 @@ toString kind =
         Id_for_swept_VDS_and_VGS ->
             "Drain current over the gate voltage for various Drain - Source voltages"
 
+        Psd ->
+            "Power Spectral density of the Drain current"
+
 
 toString_concise : ProcessingType -> String
 toString_concise kind =
@@ -106,3 +118,6 @@ toString_concise kind =
 
         Id_for_swept_VDS_and_VGS ->
             "Id(Vgs,Vds)"
+
+        Psd ->
+            "Psd"

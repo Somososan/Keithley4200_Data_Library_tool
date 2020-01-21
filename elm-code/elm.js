@@ -6241,13 +6241,21 @@ var $author$project$ProcessingType$encode = function (kind) {
 						'process_type',
 						$elm$json$Json$Encode$string('Id_bins_normalized'))
 					]));
-		default:
+		case 5:
 			return $elm$json$Json$Encode$object(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
 						'process_type',
 						$elm$json$Json$Encode$string('Id_for_swept_VDS_and_VGS'))
+					]));
+		default:
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'process_type',
+						$elm$json$Json$Encode$string('Psd'))
 					]));
 	}
 };
@@ -6326,8 +6334,10 @@ var $author$project$ProcessingType$toString_concise = function (kind) {
 			return 'f(Id)';
 		case 4:
 			return 'f(Id/Id,avg)';
-		default:
+		case 5:
 			return 'Id(Vgs,Vds)';
+		default:
+			return 'Psd';
 	}
 };
 var $elm$core$Dict$union = F2(
@@ -7945,6 +7955,8 @@ var $author$project$ProcessingType$Id_normalized_versus_time = 2;
 var $author$project$ProcessingType$id_normalized_versus_time = 2;
 var $author$project$ProcessingType$Id_versus_time = 1;
 var $author$project$ProcessingType$id_versus_time = 1;
+var $author$project$ProcessingType$Psd = 6;
+var $author$project$ProcessingType$psd = 6;
 var $elm$core$List$sortBy = _List_sortBy;
 var $elm$core$List$sort = function (xs) {
 	return A2($elm$core$List$sortBy, $elm$core$Basics$identity, xs);
@@ -7969,8 +7981,10 @@ var $author$project$ProcessingType$toString = function (kind) {
 			return 'Histogram of the Drain current values';
 		case 4:
 			return 'Histogram of the Drain current values with the current divided by its average';
-		default:
+		case 5:
 			return 'Drain current over the gate voltage for various Drain - Source voltages';
+		default:
+			return 'Power Spectral density of the Drain current';
 	}
 };
 var $elm$core$Set$Set_elm_builtin = $elm$core$Basics$identity;
@@ -8040,7 +8054,7 @@ var $author$project$Main$processoptionsview = function (model) {
 	var test_type = model.g.a1;
 	var possible_process_options = (test_type === 'Sampling') ? (model.F ? _List_fromArray(
 		[$author$project$ProcessingType$raw, $author$project$ProcessingType$id_bins_normalized, $author$project$ProcessingType$id_normalized_versus_time]) : _List_fromArray(
-		[$author$project$ProcessingType$raw, $author$project$ProcessingType$id_bins, $author$project$ProcessingType$id_versus_time])) : _List_fromArray(
+		[$author$project$ProcessingType$raw, $author$project$ProcessingType$id_bins, $author$project$ProcessingType$id_versus_time, $author$project$ProcessingType$psd])) : _List_fromArray(
 		[$author$project$ProcessingType$raw, $author$project$ProcessingType$id_for_swept_VDS_and_VGS]);
 	var ids_selected = function () {
 		var filter_fn = F2(
