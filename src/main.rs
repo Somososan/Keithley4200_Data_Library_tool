@@ -11,7 +11,7 @@ use std::iter::FromIterator;
 use boolinator::*;
 use std::process::Command;
 use std::io::{self, Write};
-
+use rayon::prelude::*;
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
 struct Database {
@@ -1316,147 +1316,147 @@ impl ProcessQuery{
         };
 
 
-        for pt in self.what.iter() {
-            let testdata_total =  selected_measurements.iter().map(|m| {
-                let testdata = m.test_data.clone();
-                let data :Vec<ExportData> = {
-                    let temp = match pt {
+        self.what.par_iter()
+            .for_each( |pt| {
+                let testdata_total =  selected_measurements.iter().map(|m| {
+                    let testdata = m.test_data.clone();
+                    let data :Vec<ExportData> = {
+                        let temp = match pt {
+                            ProcessingType::Raw => {
+                                testdata
+                            },
+                            ProcessingType::Id_versus_time | ProcessingType::Id_normalized_versus_time | ProcessingType::Psd => {
+                                testdata.into_iter().filter(|t| t.terminal == Terminal::Time || (t.terminal == Terminal::Drain && t.unit == Unit::Current) ).collect::<Vec<TestData>>()
+                            },
+                            ProcessingType::Id_bins | ProcessingType::Id_bins_normalized=>{
+                                testdata.into_iter().filter(|t|t.terminal == Terminal::Drain && t.unit == Unit::Current ).collect::<Vec<TestData>>()
+                            },
+                            ProcessingType::Id_for_swept_VDS_and_VGS => {
+                                testdata.into_iter().filter(|t| (t.terminal == Terminal::Drain && t.unit == Unit::Current) || (t.terminal == Terminal::Drain && t.unit == Unit::Voltage) || (t.terminal == Terminal::Gate && t.unit == Unit::Voltage) ).collect::<Vec<TestData>>()
+                            }
+                        };
+                        temp.into_iter().map(|t| ExportData::from_testdata(m.id.clone(),t)).collect::<Vec<ExportData>>()
+                    };
+                    let title : String = {
+                        let wafer = if diff_wafer {
+                            m.device.wafer.and_then(|w| Some(format!("P={} " ,w)) ).unwrap_or("".to_string())
+                        } else {"".to_string()};
+                        let die = if diff_die {
+                            m.device.die.clone().and_then(|d| Some(format!("D={}{} ",d.0,d.1)) ).unwrap_or("".to_string())
+                        } else {"".to_string()};
+                        let temp = if diff_temp {
+                            m.device.temperature.and_then(|t| Some(format!("T={}°K " ,t)) ).unwrap_or("".to_string())
+                        } else {"".to_string()};
+                        let width = if diff_width {
+                            m.device.width.and_then(|w| { if w > 100.0 {
+                                Some(format!("W={}µm ",(w/1000.0)))
+                            } else {
+                                Some(format!("W={}nm ",w))
+                            }} ).unwrap_or("".to_string())
+                        } else {"".to_string()};
+                        let length = if diff_length {
+                            m.device.length.and_then(|l| { if l > 100.0 {
+                                Some(format!("L={}µm ",(l/1000.0)))
+                            } else {
+                                Some(format!("L={}nm ",l))
+                            }} ).unwrap_or("".to_string())
+                        } else {"".to_string()};
+                        let id = if !(diff_wafer&& diff_die && diff_temp && diff_width && diff_length) && diff_time || self.from.len()==1{
+                            m.id.clone()
+                        } else {
+                            //println!("{} {} {} {} {} {} {}",diff_wafer,diff_die,diff_temp,diff_width,diff_length, diff_time,m.test_time_stamp);
+                            "Error No Distinctive Parameters".to_string()
+                        };
+
+                        format!("{}{}{}{}{}{}",wafer,die,temp,width,length,id)
+                    };
+                    //println!("title:{}", title);
+                    DataSeries{title,data}
+
+                }).collect::<Vec<DataSeries>>();
+                
+                let python_script = |script :&str| {
+                    let python_output = Command::new("python")
+                                .arg(format!("{1}/{0}.py",script,script_dir ))
+                                .arg(format!("{}",script_dir ))
+                                .arg(format!("{}",output_dir ))
+                                .output()
+                                .expect("process failed to execute");
+                    println!("status of {}.py: {}", script, python_output.status);
+                    io::stdout().write_all(&python_output.stdout).unwrap_or_default();
+                    io::stderr().write_all(&python_output.stderr).unwrap_or_default();
+                };
+
+                if self.combined{
+                    match pt {
                         ProcessingType::Raw => {
-                            testdata
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/Raw.json",output_dir ), v.as_str() ).expect("error writing json");
                         },
-                        ProcessingType::Id_versus_time | ProcessingType::Id_normalized_versus_time | ProcessingType::Psd => {
-                            testdata.into_iter().filter(|t| t.terminal == Terminal::Time || (t.terminal == Terminal::Drain && t.unit == Unit::Current) ).collect::<Vec<TestData>>()
+                        ProcessingType::Id_bins => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/data/id_bins.json",script_dir ), v.as_str() ).expect("error writing json");
+                            python_script("id_bins");
                         },
-                        ProcessingType::Id_bins | ProcessingType::Id_bins_normalized=>{
-                            testdata.into_iter().filter(|t|t.terminal == Terminal::Drain && t.unit == Unit::Current ).collect::<Vec<TestData>>()
+                        ProcessingType::Id_bins_normalized => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/data/id_bins_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
+                            python_script("id_bins_normalized");
                         },
-                        ProcessingType::Id_for_swept_VDS_and_VGS => {
-                            testdata.into_iter().filter(|t| (t.terminal == Terminal::Drain && t.unit == Unit::Current) || (t.terminal == Terminal::Drain && t.unit == Unit::Voltage) || (t.terminal == Terminal::Gate && t.unit == Unit::Voltage) ).collect::<Vec<TestData>>()
-                        }
-                    };
-                    temp.into_iter().map(|t| ExportData::from_testdata(m.id.clone(),t)).collect::<Vec<ExportData>>()
-                };
-                let title : String = {
-                    let wafer = if diff_wafer {
-                        m.device.wafer.and_then(|w| Some(format!("P={} " ,w)) ).unwrap_or("".to_string())
-                    } else {"".to_string()};
-                    let die = if diff_die {
-                        m.device.die.clone().and_then(|d| Some(format!("D={}{} ",d.0,d.1)) ).unwrap_or("".to_string())
-                    } else {"".to_string()};
-                    let temp = if diff_temp {
-                        m.device.temperature.and_then(|t| Some(format!("T={}°K " ,t)) ).unwrap_or("".to_string())
-                    } else {"".to_string()};
-                    let width = if diff_width {
-                        m.device.width.and_then(|w| { if w > 100.0 {
-                            Some(format!("W={}µm ",(w/1000.0)))
-                        } else {
-                            Some(format!("W={}nm ",w))
-                        }} ).unwrap_or("".to_string())
-                    } else {"".to_string()};
-                    let length = if diff_length {
-                        m.device.length.and_then(|l| { if l > 100.0 {
-                            Some(format!("L={}µm ",(l/1000.0)))
-                        } else {
-                            Some(format!("L={}nm ",l))
-                        }} ).unwrap_or("".to_string())
-                    } else {"".to_string()};
-                    let id = if !(diff_wafer&& diff_die && diff_temp && diff_width && diff_length) && diff_time || self.from.len()==1{
-                        m.id.clone()
-                    } else {
-                        //println!("{} {} {} {} {} {} {}",diff_wafer,diff_die,diff_temp,diff_width,diff_length, diff_time,m.test_time_stamp);
-                        "Error No Distinctive Parameters".to_string()
-                    };
-
-                    format!("{}{}{}{}{}{}",wafer,die,temp,width,length,id)
-                };
-                //println!("title:{}", title);
-                DataSeries{title,data}
-
-            }).collect::<Vec<DataSeries>>();
-            
-            let python_script = |script :&str| {
-                let python_output = Command::new("python")
-                            .arg(format!("{1}/{0}.py",script,script_dir ))
-                            .arg(format!("{}",script_dir ))
-                            .arg(format!("{}",output_dir ))
-                            .output()
-                            .expect("process failed to execute");
-                println!("status of {}.py: {}", script, python_output.status);
-                io::stdout().write_all(&python_output.stdout).unwrap();
-                io::stderr().write_all(&python_output.stderr).unwrap();
-            };
-
-            if self.combined{
-                match pt {
-                    ProcessingType::Raw => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/Raw.json",output_dir ), v.as_str() ).expect("error writing json");
-                    },
-                    ProcessingType::Id_bins => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/id_bins.json",script_dir ), v.as_str() ).expect("error writing json");
-                        python_script("id_bins");
-                    },
-                    ProcessingType::Id_bins_normalized => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/id_bins_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
-                        python_script("id_bins_normalized");
-                    },
-                    ProcessingType::Id_versus_time => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/id_versus_time.json",script_dir ), v.as_str() ).expect("error writing json");
-                        python_script("id_versus_time");
-                    },
-                    ProcessingType::Id_normalized_versus_time => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/id_versus_time_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
-                        python_script("id_versus_time_normalized");
-                    },
-                    ProcessingType::Psd => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/psd.json",script_dir ), v.as_str() ).expect("error writing json");
-                        python_script("psd");
-                    },
-                    _ => {}
+                        ProcessingType::Id_versus_time => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/data/id_versus_time.json",script_dir ), v.as_str() ).expect("error writing json");
+                            python_script("id_versus_time");
+                        },
+                        ProcessingType::Id_normalized_versus_time => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/data/id_versus_time_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
+                            python_script("id_versus_time_normalized");
+                        },
+                        ProcessingType::Psd => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/data/psd.json",script_dir ), v.as_str() ).expect("error writing json");
+                            python_script("psd");
+                        },
+                        _ => {}
+                    }
+                } else {
+                    match pt {
+                        ProcessingType::Raw => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/Raw.json",output_dir ), v.as_str() ).expect("error writing json");
+                        },
+                        ProcessingType::Id_bins => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/data/id_bins.json",script_dir ), v.as_str() ).expect("error writing json");
+                            python_script("id_bins");
+                        },
+                        ProcessingType::Id_bins_normalized => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/data/id_bins_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
+                            python_script("id_bins_normalized");
+                        },
+                        ProcessingType::Id_versus_time => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/data/id_versus_time.json",script_dir ), v.as_str() ).expect("error writing json");
+                            python_script("id_versus_time");
+                        },
+                        ProcessingType::Id_normalized_versus_time => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/data/id_versus_time_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
+                            python_script("id_versus_time_normalized");
+                        },
+                        ProcessingType::Psd => {
+                            let v = serde_json::to_string(&testdata_total).unwrap();
+                            fs::write( format!("{}/data/psd.json",script_dir ), v.as_str() ).expect("error writing json");
+                            python_script("psd");
+                        },
+                        _ => {}
+                    }
                 }
-            } else {
-                match pt {
-                    ProcessingType::Raw => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/Raw.json",output_dir ), v.as_str() ).expect("error writing json");
-                    },
-                    ProcessingType::Id_bins => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/id_bins.json",script_dir ), v.as_str() ).expect("error writing json");
-                        python_script("id_bins");
-                    },
-                    ProcessingType::Id_bins_normalized => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/id_bins_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
-                        python_script("id_bins_normalized");
-                    },
-                    ProcessingType::Id_versus_time => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/id_versus_time.json",script_dir ), v.as_str() ).expect("error writing json");
-                        python_script("id_versus_time");
-                    },
-                    ProcessingType::Id_normalized_versus_time => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/id_versus_time_normalized.json",script_dir ), v.as_str() ).expect("error writing json");
-                        python_script("id_versus_time_normalized");
-                    },
-                    ProcessingType::Psd => {
-                        let v = serde_json::to_string(&testdata_total).unwrap();
-                        fs::write( format!("{}/psd.json",script_dir ), v.as_str() ).expect("error writing json");
-                        python_script("psd");
-                    },
-                    _ => {}
-                }
-            }
-            
-        }
+            });   
 
-    }//fm
+    }//fn
 }//impl
 
 #[derive(Debug,Deserialize,Clone)]
