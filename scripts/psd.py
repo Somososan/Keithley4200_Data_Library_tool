@@ -19,7 +19,7 @@ def serie_single_processor(serie):
     plt.semilogx(f[2:],logpsd[2:])
     plt.title("Power Spectral Density of: "+serie['title'])
     plt.autoscale('both',tight=True)
-    plt.ylabel('PSD(V^2/Hz)')
+    plt.ylabel('PSD(A^2/Hz)')
     plt.xlabel('f(Hz)')
 
     outputdir = PureWindowsPath(sys.argv[2]) 
