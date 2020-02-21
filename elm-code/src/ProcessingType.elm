@@ -1,4 +1,4 @@
-module ProcessingType exposing (ProcessingType, encode, id_bins, id_bins_normalized, id_for_swept_VDS_and_VGS, id_normalized_versus_time, id_versus_time, psd, raw, toString, toString_concise)
+module ProcessingType exposing (ProcessingType, encode, id_bins, id_bins_normalized, id_for_swept_VDS_and_VGS, id_normalized_versus_time, id_versus_time, psd, raw, toString, toString_concise, ts_bins)
 
 import Json.Encode as Encode
 
@@ -9,6 +9,7 @@ type ProcessingType
     | Id_normalized_versus_time
     | Id_bins
     | Id_bins_normalized
+    | Ts_bins
     | Id_for_swept_VDS_and_VGS
     | Psd
 
@@ -48,6 +49,11 @@ psd =
     Psd
 
 
+ts_bins : ProcessingType
+ts_bins =
+    Ts_bins
+
+
 encode : ProcessingType -> Encode.Value
 encode kind =
     case kind of
@@ -65,6 +71,9 @@ encode kind =
 
         Id_bins_normalized ->
             Encode.object [ ( "process_type", Encode.string "Id_bins_normalized" ) ]
+
+        Ts_bins ->
+            Encode.object [ ( "process_type", Encode.string "Ts_bins" ) ]
 
         Id_for_swept_VDS_and_VGS ->
             Encode.object [ ( "process_type", Encode.string "Id_for_swept_VDS_and_VGS" ) ]
@@ -91,6 +100,9 @@ toString kind =
         Id_bins_normalized ->
             "Histogram of the Drain current values with the current divided by its average"
 
+        Ts_bins ->
+            "Histogram of the difference of Time"
+
         Id_for_swept_VDS_and_VGS ->
             "Drain current over the gate voltage for various Drain - Source voltages"
 
@@ -115,6 +127,9 @@ toString_concise kind =
 
         Id_bins_normalized ->
             "f(Id/Id,avg)"
+
+        Ts_bins ->
+            "f(dt)"
 
         Id_for_swept_VDS_and_VGS ->
             "Id(Vgs,Vds)"
