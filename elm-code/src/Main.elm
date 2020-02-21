@@ -3,7 +3,6 @@ port module Main exposing (..)
 import Browser
 import CurrentRange
 import Dict exposing (..)
-import Die
 import EncodeHelper exposing (..)
 import FilterOptions exposing (FilterOptions)
 import FilterQuery exposing (..)
@@ -572,7 +571,6 @@ measurementview model =
                     [ measurement
                         |> .device
                         |> .die
-                        |> Maybe.map (\( a, b ) -> a ++ String.fromInt b)
                         |> Maybe.withDefault ""
                         |> text
                     ]
@@ -677,14 +675,19 @@ processoptionsview model =
                 |> List.map (\s -> span [ class "selection_option" ] [ text (MeasurementSpeed.toString s) ])
 
         dies =
-            List.Extra.uniqueBy Die.toString (List.filterMap (\m -> m.device.die) selected_measurements)
+            selected_measurements
+                |> List.filterMap (\m -> m.device.die)
+                |> List.Extra.unique
 
         die_selected_list =
             dies
-                |> List.map (\( s, i ) -> span [ class "selection_option" ] [ text ("(" ++ s ++ "," ++ String.fromInt i ++ ")") ])
+                |> List.map (\d -> span [ class "selection_option" ] [ text ("(" ++ d ++ ")") ])
 
         widths =
-            List.sort (List.Extra.unique (List.filterMap (\m -> m.device.width) selected_measurements))
+            selected_measurements
+                |> List.filterMap (\m -> m.device.width)
+                |> List.Extra.unique
+                |> List.sort
 
         width_selected_list =
             widths
@@ -806,7 +809,7 @@ testdataselectionview model =
                 die =
                     case measurement.device.die of
                         Just d ->
-                            [ tr [] [ td [] [ text "Die" ], td [] [ text (Die.toString d) ] ] ]
+                            [ tr [] [ td [] [ text "Die" ], td [] [ text d ] ] ]
 
                         Nothing ->
                             []

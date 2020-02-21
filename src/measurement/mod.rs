@@ -94,16 +94,16 @@ impl Measurement {
                     .unwrap(),
             );
             let sheet = sett.sub_range((1, 0), sett.end());
-            let position_of_test_name: Vec<(usize, usize)> =
+            let positions_of_test_name: Vec<(usize, usize)> =
                 Measurement::extract_origin_positions(&sheet);
-            let mut subranges: Vec<MyRange> = position_of_test_name
+            let mut subranges: Vec<MyRange> = positions_of_test_name
                 .iter()
-                .zip(position_of_test_name.iter().skip(1))
+                .zip(positions_of_test_name.iter().skip(1))
                 .map(|((row, _), (row_next, _))| {
                     sheet.sub_range((*row, 0), (row_next - 1, sheet.end().1))
                 })
                 .collect();
-            subranges.push(sheet.sub_range(*position_of_test_name.last().unwrap(), sheet.end()));
+            subranges.push(sheet.sub_range(*positions_of_test_name.last().unwrap(), sheet.end()));
             for run_setting in subranges.iter() {
                 let sheet_name: String = Measurement::extract_sheet_name(run_setting)
                     .expect("Sheet name extraction failure")
@@ -118,11 +118,11 @@ impl Measurement {
                         .unwrap(),
                 );
                 let test_time_stamp =
-                    timestamp::TimeStamp::extract(&data_sheet).expect("Error parsing timestamp");
+                    timestamp::TimeStamp::extract(&run_setting).expect("Error parsing timestamp");
                 let id = storage.generate_id(test_time_stamp);
 
                 let test_parameter: testparameter::TestParameter =
-                    testparameter::TestParameter::extract(&data_sheet)
+                    testparameter::TestParameter::extract(&run_setting)
                         .expect("Test type extraction failure");
                 let device: device::Device =
                     device::Device::extract(relative_path.clone(), sheet_name.clone());

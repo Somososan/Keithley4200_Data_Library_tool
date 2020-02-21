@@ -55,6 +55,7 @@ impl crate::Extract for TimeStamp {
             .expect("Time stamp extraction failure");
         let mut split_string = raw_string.split_ascii_whitespace();
         let mut date = split_string.next().unwrap().split('/');
+
         //keep this order for the Yankees
         let month: u8 = date
             .next()

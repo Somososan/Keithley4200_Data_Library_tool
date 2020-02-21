@@ -96,7 +96,6 @@ impl Device {
         )
         .parse::<u32>()
         .ok();
-        //println!("{:#?}", temp_string);
         let left_of_is =
             |string: String| string.rsplit("=").into_iter().next().unwrap().to_string();
         let w_is_filter =
@@ -109,7 +108,6 @@ impl Device {
             .map(left_of_is)
             .collect::<Vec<String>>();
         w_string.dedup();
-        //println!("{:#?}", strings);
         let width: Option<f64> = if w_string.len() != 1 {
             None
         } else {

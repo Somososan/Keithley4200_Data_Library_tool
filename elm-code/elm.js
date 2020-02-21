@@ -5402,19 +5402,6 @@ var $elm$json$Json$Decode$nullable = function (decoder) {
 				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, decoder)
 			]));
 };
-var $elm$json$Json$Decode$index = _Json_decodeIndex;
-var $elm$core$Tuple$pair = F2(
-	function (a, b) {
-		return _Utils_Tuple2(a, b);
-	});
-var $author$project$DecodeHelper$tuple2 = F2(
-	function (a, b) {
-		return A3(
-			$elm$json$Json$Decode$map2,
-			$elm$core$Tuple$pair,
-			A2($elm$json$Json$Decode$index, 0, a),
-			A2($elm$json$Json$Decode$index, 1, b));
-	});
 var $author$project$Device$decode = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
 	'length',
@@ -5430,8 +5417,7 @@ var $author$project$Device$decode = A3(
 			A3(
 				$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
 				'die',
-				$elm$json$Json$Decode$nullable(
-					A2($author$project$DecodeHelper$tuple2, $elm$json$Json$Decode$string, $elm$json$Json$Decode$int)),
+				$elm$json$Json$Decode$nullable($elm$json$Json$Decode$string),
 				A3(
 					$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
 					'wafer',
@@ -6767,6 +6753,10 @@ var $elm$core$Maybe$withDefault = F2(
 			return _default;
 		}
 	});
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
 var $elm_community$list_extra$List$Extra$zip = $elm$core$List$map2($elm$core$Tuple$pair);
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -7737,19 +7727,7 @@ var $author$project$Main$measurementview = function (model) {
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							A2(
-								$elm$core$Maybe$withDefault,
-								'',
-								A2(
-									$elm$core$Maybe$map,
-									function (_v0) {
-										var a = _v0.a;
-										var b = _v0.b;
-										return _Utils_ap(
-											a,
-											$elm$core$String$fromInt(b));
-									},
-									measurement.f.az)))
+							A2($elm$core$Maybe$withDefault, '', measurement.f.az))
 						])),
 					A2(
 					$elm$html$Html$td,
@@ -7972,13 +7950,6 @@ var $elm$core$List$sort = function (xs) {
 	return A2($elm$core$List$sortBy, $elm$core$Basics$identity, xs);
 };
 var $elm$html$Html$span = _VirtualDom_node('span');
-var $author$project$Die$toString = function (_v0) {
-	var a = _v0.a;
-	var b = _v0.b;
-	return _Utils_ap(
-		a,
-		$elm$core$String$fromInt(b));
-};
 var $author$project$ProcessingType$toString = function (kind) {
 	switch (kind) {
 		case 0:
@@ -8072,7 +8043,7 @@ var $author$project$Main$processoptionsview = function (model) {
 		[$author$project$ProcessingType$raw, $author$project$ProcessingType$id_for_swept_VDS_and_VGS]);
 	var ids_selected = function () {
 		var filter_fn = F2(
-			function (_v1, entry) {
+			function (_v0, entry) {
 				return entry.p;
 			});
 		return $elm$core$Dict$keys(
@@ -8157,9 +8128,7 @@ var $author$project$Main$processoptionsview = function (model) {
 					]));
 		},
 		widths);
-	var dies = A2(
-		$elm_community$list_extra$List$Extra$uniqueBy,
-		$author$project$Die$toString,
+	var dies = $elm_community$list_extra$List$Extra$unique(
 		A2(
 			$elm$core$List$filterMap,
 			function (m) {
@@ -8274,9 +8243,7 @@ var $author$project$Main$processoptionsview = function (model) {
 	}();
 	var die_selected_list = A2(
 		$elm$core$List$map,
-		function (_v0) {
-			var s = _v0.a;
-			var i = _v0.b;
+		function (d) {
 			return A2(
 				$elm$html$Html$span,
 				_List_fromArray(
@@ -8285,8 +8252,7 @@ var $author$project$Main$processoptionsview = function (model) {
 					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text(
-						'(' + (s + (',' + ($elm$core$String$fromInt(i) + ')'))))
+						$elm$html$Html$text('(' + (d + ')'))
 					]));
 		},
 		dies);
@@ -9469,8 +9435,7 @@ var $author$project$Main$testdataselectionview = function (model) {
 								_List_Nil,
 								_List_fromArray(
 									[
-										$elm$html$Html$text(
-										$author$project$Die$toString(d))
+										$elm$html$Html$text(d)
 									]))
 							]))
 					]);
