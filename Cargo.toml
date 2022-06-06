@@ -11,7 +11,7 @@ serde = { version = "1.0.104", features = ["derive"] }
 serde_json = "1.0"
 webview = {package = "web-view",version = "0.6.0", features = ["edge"]}
 
-calamine = "0.16.1"
+calamine = "0.17.0"
 strum = "0.17.1"
 strum_macros = "0.17.1"
 clap = "2.33.0"
